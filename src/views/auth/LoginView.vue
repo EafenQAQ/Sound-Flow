@@ -7,7 +7,8 @@
     <input type="password" placeholder="输入密码" v-model="password" required>
     <div class="error" v-if="error">{{ error }}</div>
     <div class="success" v-if="success">{{ success }}</div>
-    <button>登录</button>
+    <button v-if="!isPending">登录</button>
+    <button v-if="isPending" disabled>Loading...</button>
   </form>
 </template>
 
@@ -18,7 +19,7 @@ import { ref } from 'vue';
 const email = ref(null)
 const password = ref(null)
 const success = ref(null)
-const { error, login } = useLogin()
+const { error, login, isPending } = useLogin()
 
 const handleSubmit = async () => {
   await login(email.value, password.value)
