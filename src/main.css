@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+
+html {
+  box-sizing: border-box;
+}
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+body {
+  /* 设置页面的默认字体栈 */
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans',
+    'Helvetica Neue', sans-serif;
+
+  /* 设置页面的默认基础字号 */
+  font-size: 1rem; /* 16px */
+
+  /* 设置页面的默认行高 */
+  line-height: 1.6;
+
+  /* 设置页面的默认文本颜色 */
+  color: #333;
+
+  /* 设置页面的默认背景颜色 */
+  background-color: #fff;
+}
+
+.nunito-font {
+  font-family: 'Nunito', sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+:root {
+  --primary: #4f515a;
+  --secondary: #ebebeb;
+  --warning: #da0f41;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  font-family: 'Nunito', sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  color: var(--primary);
+}
+
+body {
+  background: #fafafa;
+}
+
+a {
+  text-decoration: none;
+}
+
+/* buttons */
+button,
+.btn {
+  background: var(--secondary);
+  border-radius: 8px;
+  border: 0;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-block;
+}
+
+button:hover,
+.btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+button:disabled {
+  opacity: 0.5;
+  color: var(--primary);
+  background: var(--secondary);
+  cursor: not-allowed;
+}
+
+/* forms */
+form {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 1px 2px 3px rgba(50, 50, 50, 0.05);
+  border: 1px solid var(--secondary);
+  background: white;
+}
+
+input,
+textarea {
+  border: 0;
+  border-bottom: 1px solid var(--secondary);
+  padding: 10px;
+  outline: none;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 20px auto;
+}
+
+.error {
+  color: var(--warning);
+  font-size: 14px;
+  margin: 16px 0;
+}
