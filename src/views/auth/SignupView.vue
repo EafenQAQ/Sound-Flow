@@ -11,7 +11,8 @@
     <input type="password" placeholder="确认密码" v-model="confirmPassword" required>
     <div class="error" v-if="error">{{ error }}</div>
     <div class="success" v-if="success">{{ success }}</div>
-    <button>注册</button>
+    <button v-if="!isPending">注册</button>
+    <button v-if="isPending" disabled>Loading...</button>
   </form>
 </template>
 
@@ -24,7 +25,7 @@ const password = ref(null)
 const confirmPassword = ref(null)
 const displayName = ref(null)
 const success = ref(null)
-const { error, signup } = useSignup()
+const { error, signup, isPending } = useSignup()
 
 const handleSubmit = async () => {
   if (password.value !== confirmPassword.value) {
@@ -56,6 +57,4 @@ form button {
   margin: 2rem auto 0 auto;
   display: block;
 }
-
-
 </style>
