@@ -117,3 +117,8 @@ textarea {
   font-size: 14px;
   margin: 16px 0;
 }
+.success {
+  color: rgb(78, 223, 78);
+  /* 居中 */
+  text-align: center;
+}
