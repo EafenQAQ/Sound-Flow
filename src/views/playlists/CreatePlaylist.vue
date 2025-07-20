@@ -9,8 +9,10 @@
       <label>上传封面图</label>
       <input @change="handleChange" type="file" accept="image/*" required>
       <p class="error">{{ fileError }}</p>
-      <button type="submit">创建歌单</button>
+      <button v-if="!isPending" type="submit">创建歌单</button>
+      <button v-if="isPending" disabled>Loading...</button>
       <div v-if="error" class="error">{{ error }}</div>
+      <div v-if="success" class="success">{{ success }}</div>
     </form>
   </div>
 </template>
@@ -30,7 +32,8 @@ const description = ref('')
 const cover = ref(null)
 const allowedTypes = ref(['image/png', 'image/jpeg', 'image/gif'])
 const fileError = ref(null)
-
+const isPending = ref(false)
+const success = ref('')
 
 const handleChange = (e) => {
   const selected = e.target.files[0]
@@ -51,6 +54,7 @@ const { error, addDoc } = useCollection('playlists')
 
 const handleSubmit = async () => {
   if (cover.value) {
+    isPending.value = true
     await uploadImage(cover.value)
     await addDoc({
       title: title.value,
@@ -71,7 +75,9 @@ const handleSubmit = async () => {
 
   if (!error.value) {
     console.log('歌单创建成功')
+    success.value = '创建成功！'
   }
+  isPending.value = false
 }
 
 
