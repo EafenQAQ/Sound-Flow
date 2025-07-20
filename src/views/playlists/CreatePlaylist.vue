@@ -10,14 +10,20 @@
       <input @change="handleChange" type="file" accept="image/*" required>
       <p class="error">{{ fileError }}</p>
       <button type="submit">创建歌单</button>
+      <div v-if="error" class="error">{{ error }}</div>
     </form>
   </div>
 </template>
 
 <script setup>
+import { getUser } from '@/composables/getUser';
+import useCollection from '@/composables/useCollection';
 import useStorage from '@/composables/useStorage';
+import { timestamp } from '@/firebase/config';
 import { ref, watch } from 'vue';
 
+// 获取用户登录状态
+const { user } = getUser()
 
 const title = ref('')
 const description = ref('')
@@ -41,30 +47,34 @@ const handleChange = (e) => {
 }
 
 const { url, filePath, uploadImage } = useStorage()
+const { error, addDoc } = useCollection('playlists')
 
 const handleSubmit = async () => {
-
   if (cover.value) {
     await uploadImage(cover.value)
-    console.log('歌单标题:', title.value)
-    console.log('歌单介绍:', description.value)
-    console.log('封面图:', cover.value)
-  }
+    await addDoc({
+      title: title.value,
+      description: description.value,
+      userId: user.value.uid,
+      userName: user.value.displayName,
+      coverUrl: url.value,
+      filePath: filePath.value,
+      songs: [],
+      createdAt: timestamp(),
+    })
 
 
-
-
-  else {
+  } else {
     fileError.value = "请上传图片文件！"
     console.error('没有按要求上传文件')
   }
+
+  if (!error.value) {
+    console.log('歌单创建成功')
+  }
 }
 
-// 监听cover.value
-watch(cover, () => {
-  console.log("监听器：", cover.value)
-}
-)
+
 </script>
 
 <style scoped>

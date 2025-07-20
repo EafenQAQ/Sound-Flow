@@ -10,7 +10,7 @@ const useCollection = (collection) => {
       error.value = null;
       await projectFirestore.collection(collection).add(doc)
       if (!error.value) {
-        console.log('发送消息成功:', doc)
+        console.log('发送data成功:', doc)
       }
     } catch(err) {
       console.error(err.message)
