@@ -15,10 +15,12 @@
 <script setup>
 import { useLogin } from '@/composables/useLogin';
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const email = ref(null)
 const password = ref(null)
 const success = ref(null)
+const router = useRouter()
 const { error, login, isPending } = useLogin()
 
 const handleSubmit = async () => {
@@ -26,6 +28,7 @@ const handleSubmit = async () => {
   if (!error.value) {
     console.log('登录成功')
     success.value = '登录成功 ✔'
+    router.push({ name: 'home' })
   }
 }
 
