@@ -14,6 +14,9 @@
         <RouterLink :to="{ name: 'signup' }"><button>注册</button></RouterLink>
       </template>
 
+      <template v-else>
+        <RouterLink :to="{ name: 'createPlaylist' }">创建歌单</RouterLink>
+      </template>
 
       <button v-if="user" @click="handleLogout">登出</button>
 
