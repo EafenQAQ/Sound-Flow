@@ -1,16 +1,18 @@
 <template>
   <div class="ListView" v-for="playlist in playlists" :key="playlist.id">
-    <div class="single">
-      <div class="thumbnail">
-        <img :src="playlist.coverUrl" alt="封面加载失败">
+    <RouterLink :to="{ name: 'playlistDetails', params: { id: playlist.id } }">
+      <div class="single">
+        <div class="thumbnail">
+          <img :src="playlist.coverUrl" alt="封面加载失败">
+        </div>
+        <div class="info">
+          <h3>{{ playlist.title }}</h3>
+          <p>创建者：{{ playlist.userName }}</p>
+        </div>
+        <!-- 歌曲数量 -->
+        <p class="songs-number">{{ playlist.songs.length }}</p>
       </div>
-      <div class="info">
-        <h3>{{ playlist.title }}</h3>
-        <p>创建者：{{ playlist.userName }}</p>
-      </div>
-      <!-- 歌曲数量 -->
-      <p class="songs-number">{{ playlist.songs.length }}</p>
-    </div>
+    </RouterLink>
   </div>
 </template>
 
@@ -54,5 +56,15 @@ const props = defineProps({
 
 .songs-number {
   margin-left: auto;
+}
+
+h3 {
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.single p {
+  font-weight: 300;
+  font-size: 0.9rem;
 }
 </style>

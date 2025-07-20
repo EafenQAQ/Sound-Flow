@@ -22,10 +22,13 @@ import { getUser } from '@/composables/getUser';
 import useCollection from '@/composables/useCollection';
 import useStorage from '@/composables/useStorage';
 import { timestamp } from '@/firebase/config';
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 // 获取用户登录状态
 const { user } = getUser()
+
+const router = useRouter()
 
 const title = ref('')
 const description = ref('')
@@ -56,7 +59,7 @@ const handleSubmit = async () => {
   if (cover.value) {
     isPending.value = true
     await uploadImage(cover.value)
-    await addDoc({
+    const res = await addDoc({
       title: title.value,
       description: description.value,
       userId: user.value.uid,
@@ -67,17 +70,22 @@ const handleSubmit = async () => {
       createdAt: timestamp(),
     })
 
+    isPending.value = false
 
+    if (!error.value) {
+      console.log('歌单创建成功')
+      success.value = '创建成功！'
+
+      router.push({ name: 'playlistDetails', params: { id: res.id } })
+    }
   } else {
     fileError.value = "请上传图片文件！"
     console.error('没有按要求上传文件')
   }
 
-  if (!error.value) {
-    console.log('歌单创建成功')
-    success.value = '创建成功！'
-  }
-  isPending.value = false
+
+
+
 }
 
 
