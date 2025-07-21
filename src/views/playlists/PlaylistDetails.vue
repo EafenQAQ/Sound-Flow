@@ -10,7 +10,10 @@
         <p class="description">{{ document.description }}</p>
       </div>
       <div class="songs-list">
-        songs here
+        <div class="no-songs" v-if="!document.songs.length">还没有歌曲哦~赶快添加吧</div>
+        <div v-for="song in document.songs" :key="song.id">
+          <p>{{ song.title }} - {{ song.artist }}</p>
+        </div>
         <AddSongs :document="document" />
       </div>
     </template>
@@ -74,5 +77,18 @@ const { error, document } = getDocument('playlists', props.id)
 
 .description {
   align-self: flex-start;
+}
+
+.no-songs {
+  /* 置顶 */
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary);
+  opacity: 0.5;
 }
 </style>

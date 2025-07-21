@@ -1,6 +1,6 @@
 <template>
   <div class="add-songs-container">
-    <h2>添加一个新歌曲</h2>
+
     <button v-if="!showForm" @click="showForm = true" class="add-song-btn">添加新歌曲</button>
     <form v-if="showForm" @submit.prevent="handleSubmit" class="song-form">
       <input type="text" placeholder="歌曲名" required v-model="title">
@@ -41,7 +41,7 @@ const handleSubmit = async () => {
   await updateDoc({
     songs: [...props.document.songs, newSong]
   })
-  if(!error.value) {
+  if (!error.value) {
     showForm.value = false
     title.value = null
     artist.value = null
