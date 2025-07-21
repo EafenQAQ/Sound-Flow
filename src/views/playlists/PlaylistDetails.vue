@@ -11,12 +11,14 @@
       </div>
       <div class="songs-list">
         songs here
+        <AddSongs :document="document" />
       </div>
     </template>
   </div>
 </template>
 
 <script setup>
+import AddSongs from '@/components/AddSongs.vue';
 import getDocument from '@/composables/getDocument';
 
 const props = defineProps({
@@ -35,6 +37,8 @@ const { error, document } = getDocument('playlists', props.id)
   gap: 5rem;
 
   padding: 2rem 3rem;
+  min-height: 100vh;
+  align-items: center;
 }
 
 .playlist-details img {
@@ -61,5 +65,14 @@ const { error, document } = getDocument('playlists', props.id)
 .title {
   font-size: 2rem;
   font-weight: 600;
+}
+
+.songs-list {
+  width: 100%;
+
+}
+
+.description {
+  align-self: flex-start;
 }
 </style>
