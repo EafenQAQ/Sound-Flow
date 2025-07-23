@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>响应式测试</title>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #fafafa;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .screen-size {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #4f515a;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            z-index: 1000;
+        }
+        
+        .grid-demo {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        @media (min-width: 640px) {
+            .grid-demo {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .grid-demo {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        .card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 2px solid #ebebeb;
+            text-align: center;
+        }
+        
+        .mobile-only {
+            display: block;
+        }
+        
+        .desktop-only {
+            display: none;
+        }
+        
+        @media (min-width: 768px) {
+            .mobile-only {
+                display: none;
+            }
+            .desktop-only {
+                display: block;
+            }
+        }
+        
+        .nav-test {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .menu-items {
+            display: none;
+        }
+        
+        @media (min-width: 768px) {
+            .menu-items {
+                display: flex;
+                gap: 1rem;
+            }
+        }
+        
+        .hamburger {
+            display: block;
+            width: 24px;
+            height: 24px;
+            background: #4f515a;
+            border-radius: 4px;
+        }
+        
+        @media (min-width: 768px) {
+            .hamburger {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="screen-size" id="screenSize">屏幕宽度: <span id="width"></span>px</div>
+    
+    <div class="test-container">
+        <h1>Sound Flow 响应式测试</h1>
+        
+        <div class="nav-test">
+            <div class="logo">Logo</div>
+            <div class="menu-items">
+                <span>菜单项1</span>
+                <span>菜单项2</span>
+                <span>菜单项3</span>
+            </div>
+            <div class="hamburger"></div>
+        </div>
+        
+        <h2>网格布局测试</h2>
+        <p>这个网格会根据屏幕大小自动调整：移动端1列，平板2列，桌面3列</p>
+        
+        <div class="grid-demo">
+            <div class="card">卡片 1</div>
+            <div class="card">卡片 2</div>
+            <div class="card">卡片 3</div>
+            <div class="card">卡片 4</div>
+            <div class="card">卡片 5</div>
+            <div class="card">卡片 6</div>
+        </div>
+        
+        <h2>响应式显示测试</h2>
+        <div class="mobile-only" style="color: #da0f41; font-weight: bold;">
+            📱 这段文字只在移动端显示 (< 768px)
+        </div>
+        <div class="desktop-only" style="color: #4f515a; font-weight: bold;">
+            🖥️ 这段文字只在桌面端显示 (≥ 768px)
+        </div>
+        
+        <h2>断点说明</h2>
+        <ul>
+            <li><strong>移动端:</strong> < 640px (1列网格)</li>
+            <li><strong>平板端:</strong> 640px - 1023px (2列网格)</li>
+            <li><strong>桌面端:</strong> ≥ 1024px (3列网格)</li>
+            <li><strong>导航切换:</strong> 768px</li>
+        </ul>
+    </div>
+    
+    <script>
+        function updateScreenSize() {
+            const width = window.innerWidth;
+            document.getElementById('width').textContent = width;
+            
+            let device = '';
+            if (width < 640) device = ' (移动端)';
+            else if (width < 1024) device = ' (平板端)';
+            else device = ' (桌面端)';
+            
+            document.getElementById('screenSize').innerHTML = `屏幕宽度: <span id="width">${width}</span>px${device}`;
+        }
+        
+        updateScreenSize();
+        window.addEventListener('resize', updateScreenSize);
+    </script>
+</body>
+</html>
