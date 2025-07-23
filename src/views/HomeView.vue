@@ -1,6 +1,6 @@
 <template>
   <div id="HomeView">
-    <h2>Playlists</h2>
+    <h2>歌单广场</h2>
     <div v-if="playlists.length" class="playlists-container">
       <ListView :playlists="playlists" />
     </div>

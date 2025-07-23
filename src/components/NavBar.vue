@@ -16,8 +16,11 @@
 
       <template v-else>
         <RouterLink :to="{ name: 'createPlaylist' }">创建歌单</RouterLink>
+        <RouterLink :to="{ name: 'userPlaylist', params: { userId: user.uid } }">我的歌单</RouterLink>
+        <div class="greeting">
+          <p>Hi! {{ user.displayName }}</p>
+        </div>
       </template>
-
       <button v-if="user" @click="handleLogout">登出</button>
 
       <Transition name="fade" mode="out-in">
@@ -100,5 +103,11 @@ img {
 
 
 
+}
+
+.greeting {
+  border-left: 1px solid hsl(from var(--secondary) h s calc(l - 20));
+  padding-left: 1rem;
+  margin-left: 1rem;
 }
 </style>
