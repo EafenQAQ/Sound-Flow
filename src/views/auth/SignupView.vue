@@ -19,6 +19,7 @@
 <script setup>
 import { useSignup } from '@/composables/useSignup';
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const email = ref(null)
 const password = ref(null)
@@ -26,6 +27,8 @@ const confirmPassword = ref(null)
 const displayName = ref(null)
 const success = ref(null)
 const { error, signup, isPending } = useSignup()
+
+const router = useRouter()
 
 const handleSubmit = async () => {
   if (password.value !== confirmPassword.value) {
@@ -38,6 +41,12 @@ const handleSubmit = async () => {
   if (!error.value) {
     console.log('注册成功')
     success.value = '注册成功 ✔'
+    // 为跳转设定延迟以让“注册成功”停留
+    setTimeout(() => {
+      success.value = null
+      router.push({ name: 'login' })
+    }, 2000)
+
   }
 }
 

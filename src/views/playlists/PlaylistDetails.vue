@@ -6,7 +6,7 @@
       <div class="profile">
         <img :src="document.coverUrl" alt="图片加载失败">
         <h2 class="title">{{ document.title }}</h2>
-        <p class="created-by">{{ document.userName }}</p>
+        <p @click="gotoUserPlaylist" class="created-by">{{ document.userName }}</p>
         <p class="description">{{ document.description }}</p>
       </div>
       <div class="songs-list">
@@ -14,7 +14,7 @@
         <div v-for="song in document.songs" :key="song.id">
           <p>{{ song.title }} - {{ song.artist }}</p>
         </div>
-        <AddSongs :document="document" />
+        <AddSongs v-if="user.uid === document.userId" :document="document" />
       </div>
     </template>
   </div>
@@ -23,7 +23,8 @@
 <script setup>
 import AddSongs from '@/components/AddSongs.vue';
 import getDocument from '@/composables/getDocument';
-
+import { getUser } from '@/composables/getUser';
+import { useRouter } from 'vue-router';
 const props = defineProps({
   id: {
     type: String,
@@ -31,7 +32,16 @@ const props = defineProps({
   },
 })
 
+const { user } = getUser()
 const { error, document } = getDocument('playlists', props.id)
+const router = useRouter()
+
+
+// 跳转到用户歌单页面
+const gotoUserPlaylist = () => {
+  router.push({ name: 'userPlaylist', params: { userId: document.value.userId } })
+}
+
 </script>
 
 <style scoped>
@@ -62,7 +72,16 @@ const { error, document } = getDocument('playlists', props.id)
 
 .created-by {
   font-size: 0.9rem;
-  color: hsl(from var(--primary) h s calc(l + 30))
+  color: hsl(from var(--primary) h s calc(l + 30));
+  transition: transform ease 0.2s;
+}
+
+.created-by:hover {
+
+  color: var(--primary);
+  cursor: pointer;
+  transform: scale(1.02);
+
 }
 
 .title {

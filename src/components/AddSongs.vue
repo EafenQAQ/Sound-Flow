@@ -1,20 +1,23 @@
 <template>
   <div class="add-songs-container">
 
-    <button v-if="!showForm" @click="showForm = true" class="add-song-btn">添加新歌曲</button>
-    <form v-if="showForm" @submit.prevent="handleSubmit" class="song-form">
-      <input type="text" placeholder="歌曲名" required v-model="title">
-      <input type="text" placeholder="歌手名" required v-model="artist">
-      <div class="button-group">
-        <button v-if="!isPending" type="submit" class="submit-btn">添加歌曲</button>
-        <button v-if="isPending" disabled>Loading...</button>
-        <button type="button" @click="showForm = false" class="close-btn">关闭</button>
-      </div>
-    </form>
+
+      <button v-if="!showForm" @click="showForm = true" class="add-song-btn">添加新歌曲</button>
+      <form v-if="showForm" @submit.prevent="handleSubmit" class="song-form">
+        <input type="text" placeholder="歌曲名" required v-model="title">
+        <input type="text" placeholder="歌手名" required v-model="artist">
+        <div class="button-group">
+          <button v-if="!isPending" type="submit" class="submit-btn">添加歌曲</button>
+          <button v-if="isPending" disabled>Loading...</button>
+          <button type="button" @click="showForm = false" class="close-btn">关闭</button>
+        </div>
+      </form>
+
   </div>
 </template>
 
 <script setup>
+import { getUser } from '@/composables/getUser';
 import useDocument from '@/composables/useDocument';
 import { ref } from 'vue';
 
