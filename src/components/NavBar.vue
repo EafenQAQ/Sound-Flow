@@ -25,6 +25,7 @@
         <RouterLink :to="{ name: 'createPlaylist' }" @click="closeMobileMenu">创建歌单</RouterLink>
         <RouterLink :to="{ name: 'userPlaylist', params: { userId: user.uid } }" @click="closeMobileMenu">我的歌单
         </RouterLink>
+        <RouterLink :to="{ name: 'playlistManager' }" @click="closeMobileMenu">歌单管理</RouterLink>
         <div class="greeting">
           <p>Hi! {{ user.displayName }}</p>
         </div>

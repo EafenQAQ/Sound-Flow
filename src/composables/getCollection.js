@@ -5,7 +5,6 @@ import { getUser } from '@/composables/getUser'
 const getCollection = (collection, query) => {
   const error = ref(null)
   const documents = ref([])
-
   const { user } = getUser()
 
   let collectionRef = projectFirestore.collection(collection).orderBy('createdAt', 'desc')
