@@ -5,8 +5,13 @@ rules_version = '2';
 //    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
-    match /{allPaths=**} {
-      allow read, write: if request.auth !=null;
+     // 对封面上传的规则
+    match /cover/{userId}/{imageName} {
+      allow create: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.size < 2 * 1024 * 1024 // 限制封面图最大 2MB
+                    && request.resource.contentType.matches('image/.*');
+      allow read: if true;
     }
   }
 }
