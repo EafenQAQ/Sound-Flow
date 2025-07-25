@@ -5,11 +5,20 @@ rules_version = '2';
 //    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
+    // 只允许登录用户上传音频文件到他们自己的歌曲目录下
+    match /songs/{userId}/{playlistId}/{songName} {
+      allow write: if request.auth != null && request.auth.uid == userId
+                          // 限制文件大小，例如最大 15MB
+                          && request.resource.size < 15 * 1024 * 1024
+                          // 限制文件类型必须是音频
+                          && request.resource.contentType.matches('audio/.*');
+      allow read: if true
+    }
      // 对封面上传的规则
     match /cover/{userId}/{imageName} {
-      allow create: if request.auth != null
+      allow write: if request.auth != null
                     && request.auth.uid == userId
-                    && request.resource.size < 2 * 1024 * 1024 // 限制封面图最大 2MB
+                    && request.resource.size < 10 * 1024 * 1024 // 限制封面图最大 10MB
                     && request.resource.contentType.matches('image/.*');
       allow read: if true;
     }

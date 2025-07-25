@@ -31,3 +31,5 @@ coverage
 
 # firebase配置
 /src/firebase/config.js
+.firebase/hosting.ZGlzdA.cache
+storage.rules

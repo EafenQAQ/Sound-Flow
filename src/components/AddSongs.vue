@@ -2,16 +2,19 @@
   <div class="add-songs-container">
 
 
-      <button v-if="!showForm" @click="showForm = true" class="add-song-btn">添加新歌曲</button>
-      <form v-if="showForm" @submit.prevent="handleSubmit" class="song-form">
-        <input type="text" placeholder="歌曲名" required v-model="title">
-        <input type="text" placeholder="歌手名" required v-model="artist">
-        <div class="button-group">
-          <button v-if="!isPending" type="submit" class="submit-btn">添加歌曲</button>
-          <button v-if="isPending" disabled>Loading...</button>
-          <button type="button" @click="showForm = false" class="close-btn">关闭</button>
-        </div>
-      </form>
+    <button v-if="!showForm" @click="showForm = true" class="add-song-btn">添加新歌曲</button>
+    <form v-if="showForm" @submit.prevent="handleSubmit" class="song-form">
+      <input type="text" placeholder="歌曲名" required v-model="title">
+      <input type="text" placeholder="歌手名" required v-model="artist">
+      <input @change="handleChange" type="file" accept="audio/*" required>
+      <div class="error">{{ fileError }}</div>
+      <div class="button-group">
+        <button v-if="!isPending" type="submit" class="submit-btn">添加歌曲</button>
+        <button v-if="isPending" disabled>Loading...</button>
+        <button type="button" @click="showForm = false" class="close-btn">关闭</button>
+      </div>
+
+    </form>
 
   </div>
 </template>
@@ -19,6 +22,7 @@
 <script setup>
 import { getUser } from '@/composables/getUser';
 import useDocument from '@/composables/useDocument';
+import useStorage from '@/composables/useStorage';
 import { ref } from 'vue';
 
 const props = defineProps({
@@ -33,13 +37,35 @@ const showForm = ref(false)
 const title = ref(null)
 const artist = ref(null)
 
+const fileError = ref(null)
+const song = ref(null)
+
 const { error, isPending, updateDoc } = useDocument('playlists', props.document.id)
+const { filePath, url, error: uploadSongError, uploadSong } = useStorage()
+
+const handleChange = (e) => {
+  console.log('songFile:', e.target.files[0])
+  const selected = e.target.files[0]
+  if (selected && selected.type == 'audio/mpeg') {
+    fileError.value = null
+    song.value = selected
+  } else {
+    fileError.value = '请上传.mp3文件'
+  }
+}
 
 const handleSubmit = async () => {
+  if (!song.value) return;
+
+  await uploadSong(song.value, props.document.id) //上传歌曲文件到Storage
+
+  // 上传歌曲信息到firestore
   const newSong = {
     title: title.value,
     artist: artist.value,
-    id: Math.floor(Math.random() * 1000000)
+    id: Math.floor(Math.random() * 1000000),
+    filePath: filePath.value,
+    songUrl: url.value
   }
   await updateDoc({
     songs: [...props.document.songs, newSong]
@@ -52,6 +78,8 @@ const handleSubmit = async () => {
   }
 
 }
+
+
 
 
 </script>
@@ -201,5 +229,20 @@ const handleSubmit = async () => {
   .song-form button {
     width: 100%;
   }
+}
+
+input[type='file'] {
+  border: 1px dashed var(--secondary);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+input[type='file']:hover {
+  border-color: var(--primary);
+  background: #f0f0f0;
 }
 </style>

@@ -105,21 +105,9 @@ form button {
   display: block;
 }
 
-/* 文件上传输入框的特殊样式 */
-input[type="file"] {
-  border: 1px dashed var(--secondary);
-  border-radius: 8px;
-  padding: 20px;
-  text-align: center;
-  background: #fafafa;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
 
-input[type="file"]:hover {
-  border-color: var(--primary);
-  background: #f0f0f0;
-}
+
+
 
 /* 调整textarea的高度 */
 textarea {
