@@ -2,7 +2,7 @@
   <div class="playlist-details container">
     <div v-if="error" class="error">{{ error }}</div>
 
-    <template v-else>
+    <template v-else-if="document">
       <div class="content-wrapper">
         <div class="profile fade-in-up">
           <div class="cover-container">
@@ -51,6 +51,8 @@
 import AddSongs from '@/components/AddSongs.vue';
 import getDocument from '@/composables/getDocument';
 import { getUser } from '@/composables/getUser';
+import { usePlayerStore } from '@/stores/player';
+import { watch } from 'vue';
 import { useRouter } from 'vue-router';
 const props = defineProps({
   id: {
@@ -68,6 +70,14 @@ const router = useRouter()
 const gotoUserPlaylist = () => {
   router.push({ name: 'userPlaylist', params: { userId: document.value.userId } })
 }
+
+// 将歌单数据注入Pinia
+
+const playerStore = usePlayerStore()
+watch(document, (newDoc) => {
+  playerStore.initPlaylist(newDoc)
+}, { immediate: true }
+)
 
 </script>
 
