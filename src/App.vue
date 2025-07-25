@@ -9,11 +9,14 @@
       </Transition>
     </RouterView>
   </div>
+
+  <MusicPlayer />
 </template>
 
 <script setup>
 import { RouterView } from 'vue-router';
-import NavBar from './components/NavBar.vue';
+import NavBar from './components/global/NavBar.vue';
+import MusicPlayer from './components/global/MusicPlayer.vue';
 
 
 </script>
