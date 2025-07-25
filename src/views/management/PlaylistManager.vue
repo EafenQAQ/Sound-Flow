@@ -150,7 +150,7 @@
                   <input type="checkbox" :checked="isAllSongsSelected" @change.stop="toggleSelectAllSongs">
                   <span class="checkmark"></span>
                   <span class="checkbox-label">全选歌曲 ({{ selectedSongs.length }}/{{ currentPlaylist.songs.length
-                    }})</span>
+                  }})</span>
                 </div>
               </div>
 
@@ -197,7 +197,6 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { getUser } from '@/composables/getUser'
 import getCollection from '@/composables/getCollection'
-import useDocument from '@/composables/useDocument'
 import useDelete from '@/composables/useDelete'
 
 // 用户状态
@@ -207,7 +206,14 @@ const { user } = getUser()
 const { error, documents: userPlaylists, load: loadPlaylists } = getCollection('playlists', user.value?.uid)
 
 // 删除功能
-const { error: deleteError, isPending: deleteLoading, deletePlaylist, batchDeletePlaylists } = useDelete()
+const {
+  error: deleteError,
+  isPending: deleteLoading,
+  deletePlaylist,
+  batchDeletePlaylists,
+  deleteSong: deleteSongWithStorage,
+  batchDeleteSongs: batchDeleteSongsWithStorage
+} = useDelete()
 
 // 组件状态
 const selectedPlaylists = ref([])
@@ -334,23 +340,25 @@ const deleteSingleSong = async (song) => {
     return
   }
 
-  if (confirm(`确定要删除歌曲"${song.title}"吗？`)) {
-    const { updateDoc } = useDocument('playlists', currentPlaylist.value.id)
-    const updatedSongs = currentPlaylist.value.songs.filter(s => s.id !== song.id)
+  if (confirm(`确定要删除歌曲"${song.title}"吗？此操作将同时删除音频文件。`)) {
+    const success = await deleteSongWithStorage(currentPlaylist.value.id, song)
 
-    await updateDoc({ songs: updatedSongs })
-    showMessage('歌曲删除成功')
+    if (success) {
+      showMessage('歌曲删除成功')
 
-    // 从选中列表中移除
-    selectedSongs.value = selectedSongs.value.filter(id => id !== song.id)
+      // 从选中列表中移除
+      selectedSongs.value = selectedSongs.value.filter(id => id !== song.id)
 
-    // 重新加载歌单数据以显示最新结果
-    await reloadData()
+      // 重新加载歌单数据以显示最新结果
+      await reloadData()
 
-    // 更新当前歌单的引用
-    const updatedPlaylist = userPlaylists.value.find(p => p.id === currentPlaylist.value.id)
-    if (updatedPlaylist) {
-      currentPlaylist.value = updatedPlaylist
+      // 更新当前歌单的引用
+      const updatedPlaylist = userPlaylists.value.find(p => p.id === currentPlaylist.value.id)
+      if (updatedPlaylist) {
+        currentPlaylist.value = updatedPlaylist
+      }
+    } else {
+      showMessage(deleteError.value || '删除歌曲失败', 'error')
     }
   }
 }
@@ -362,26 +370,31 @@ const batchDeleteSongs = async () => {
     return
   }
 
-  const songsToDelete = selectedSongs.value.length
-  if (songsToDelete === 0) return
+  const songsToDeleteCount = selectedSongs.value.length
+  if (songsToDeleteCount === 0) return
 
-  if (confirm(`确定要删除选中的 ${songsToDelete} 首歌曲吗？`)) {
-    const { updateDoc } = useDocument('playlists', currentPlaylist.value.id)
-    const updatedSongs = currentPlaylist.value.songs.filter(song =>
-      !selectedSongs.value.includes(song.id)
-    )
+  // 获取要删除的歌曲对象
+  const songsToDelete = currentPlaylist.value.songs.filter(song =>
+    selectedSongs.value.includes(song.id)
+  )
 
-    await updateDoc({ songs: updatedSongs })
-    showMessage(`成功删除 ${songsToDelete} 首歌曲`)
-    selectedSongs.value = []
+  if (confirm(`确定要删除选中的 ${songsToDeleteCount} 首歌曲吗？此操作将同时删除音频文件。`)) {
+    const success = await batchDeleteSongsWithStorage(currentPlaylist.value.id, songsToDelete)
 
-    // 重新加载歌单数据以显示最新结果
-    await reloadData()
+    if (success) {
+      showMessage(`成功删除 ${songsToDeleteCount} 首歌曲`)
+      selectedSongs.value = []
 
-    // 更新当前歌单的引用
-    const updatedPlaylist = userPlaylists.value.find(p => p.id === currentPlaylist.value.id)
-    if (updatedPlaylist) {
-      currentPlaylist.value = updatedPlaylist
+      // 重新加载歌单数据以显示最新结果
+      await reloadData()
+
+      // 更新当前歌单的引用
+      const updatedPlaylist = userPlaylists.value.find(p => p.id === currentPlaylist.value.id)
+      if (updatedPlaylist) {
+        currentPlaylist.value = updatedPlaylist
+      }
+    } else {
+      showMessage(deleteError.value || '批量删除歌曲失败', 'error')
     }
   }
 }

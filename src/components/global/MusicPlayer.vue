@@ -21,7 +21,7 @@
           </svg>
         </button>
 
-        <button class="control-btn play-btn">
+        <button @click="playSong" class="control-btn play-btn">
           <svg viewBox="0 0 24 24" fill="currentColor" class="play-icon">
             <path d="M8 5v14l11-7z" />
           </svg>
@@ -66,11 +66,20 @@
       </div>
     </div>
 
-    <audio ref="player" display="none"></audio>
+    <audio
+      :src="songUrl"
+      ref="player" controls></audio>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue';
+
+const player = ref(null)
+const songUrl = ref('')
+
+
+
 
 </script>
 

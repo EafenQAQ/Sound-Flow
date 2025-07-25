@@ -10,7 +10,7 @@
       <div class="error">{{ fileError }}</div>
       <div class="button-group">
         <button v-if="!isPending" type="submit" class="submit-btn">添加歌曲</button>
-        <button v-if="isPending" disabled>Loading...</button>
+        <button v-if="isPending" disabled style="cursor: not-allowed;">Loading...</button>
         <button type="button" @click="showForm = false" class="close-btn">关闭</button>
       </div>
 
@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { getUser } from '@/composables/getUser';
+
 import useDocument from '@/composables/useDocument';
 import useStorage from '@/composables/useStorage';
 import { ref } from 'vue';
@@ -56,7 +56,7 @@ const handleChange = (e) => {
 
 const handleSubmit = async () => {
   if (!song.value) return;
-
+  isPending.value = true
   await uploadSong(song.value, props.document.id) //上传歌曲文件到Storage
 
   // 上传歌曲信息到firestore
@@ -70,6 +70,8 @@ const handleSubmit = async () => {
   await updateDoc({
     songs: [...props.document.songs, newSong]
   })
+
+  isPending.value = false
   if (!error.value) {
     showForm.value = false
     title.value = null
@@ -244,5 +246,10 @@ input[type='file'] {
 input[type='file']:hover {
   border-color: var(--primary);
   background: #f0f0f0;
+}
+
+.forbid {
+  /* 鼠标指针显示禁止 */
+  cursor: not-allowed;
 }
 </style>

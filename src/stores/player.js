@@ -3,6 +3,8 @@ import { ref, computed } from 'vue'
 
 export const usePlayerStore = defineStore('player', () => {
   //State
+  
+
   //Getters
   // Actions
 

@@ -8,6 +8,7 @@
         <component :is="Component" :key="route.path" />
       </Transition>
     </RouterView>
+    
   </div>
 
   <MusicPlayer />

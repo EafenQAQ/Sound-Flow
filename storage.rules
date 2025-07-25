@@ -1,26 +1,31 @@
 rules_version = '2';
 
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
-    // 只允许登录用户上传音频文件到他们自己的歌曲目录下
+    // 歌曲文件规则
     match /songs/{userId}/{playlistId}/{songName} {
-      allow write: if request.auth != null && request.auth.uid == userId
-                          // 限制文件大小，例如最大 15MB
+      // 允许用户上传自己的歌曲文件
+      allow create: if request.auth != null && request.auth.uid == userId
                           && request.resource.size < 15 * 1024 * 1024
-                          // 限制文件类型必须是音频
                           && request.resource.contentType.matches('audio/.*');
-      allow read: if true
+      // 允许用户删除自己的歌曲文件
+      allow delete: if request.auth != null && request.auth.uid == userId;
+      // 允许所有人读取
+      allow read: if true;
     }
-     // 对封面上传的规则
+    
+    // 封面图片规则
     match /cover/{userId}/{imageName} {
-      allow write: if request.auth != null
+      // 允许用户上传自己的封面图片
+      allow create: if request.auth != null
                     && request.auth.uid == userId
-                    && request.resource.size < 10 * 1024 * 1024 // 限制封面图最大 10MB
+                    && request.resource.size < 10 * 1024 * 1024
                     && request.resource.contentType.matches('image/.*');
+      // 允许用户删除自己的封面图片
+      allow delete: if request.auth != null && request.auth.uid == userId;
+      // 允许所有人读取
       allow read: if true;
     }
   }
 }
+

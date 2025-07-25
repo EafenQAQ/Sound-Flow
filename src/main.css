@@ -361,3 +361,6 @@ input[type='file']:hover {
   border-color: var(--primary);
   background: #f0f0f0;
 }
+.forbid {
+  cursor: not-allowed;
+}

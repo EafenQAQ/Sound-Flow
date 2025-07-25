@@ -27,14 +27,14 @@ const useDelete = () => {
     try {
       error.value = null
       isPending.value = true
-      
+
       const batch = projectFirestore.batch()
-      
-      docIds.forEach(id => {
+
+      docIds.forEach((id) => {
         const docRef = projectFirestore.collection(collection).doc(id)
         batch.delete(docRef)
       })
-      
+
       await batch.commit()
       console.log('批量删除成功:', docIds)
       isPending.value = false
@@ -61,17 +61,26 @@ const useDelete = () => {
     }
   }
 
-  // 删除歌单（包括封面图片）
+  // 删除歌单（包括封面图片和所有歌曲文件）
   const deletePlaylist = async (playlist) => {
     try {
       error.value = null
       isPending.value = true
-      
+
       // 先删除存储中的封面图片
       if (playlist.filePath) {
         await deleteStorageFile(playlist.filePath)
       }
-      
+
+      // 删除歌单中的所有歌曲文件
+      if (playlist.songs && playlist.songs.length > 0) {
+        const deleteSongFilePromises = playlist.songs
+          .filter((song) => song.filePath)
+          .map((song) => deleteStorageFile(song.filePath))
+
+        await Promise.all(deleteSongFilePromises)
+      }
+
       // 再删除文档
       const success = await deleteDoc('playlists', playlist.id)
       return success
@@ -83,21 +92,35 @@ const useDelete = () => {
     }
   }
 
-  // 批量删除歌单（包括封面图片）
+  // 批量删除歌单（包括封面图片和所有歌曲文件）
   const batchDeletePlaylists = async (playlists) => {
     try {
       error.value = null
       isPending.value = true
-      
+
       // 先删除所有封面图片
-      const deleteFilePromises = playlists
-        .filter(playlist => playlist.filePath)
-        .map(playlist => deleteStorageFile(playlist.filePath))
-      
-      await Promise.all(deleteFilePromises)
-      
+      const deleteCoverPromises = playlists
+        .filter((playlist) => playlist.filePath)
+        .map((playlist) => deleteStorageFile(playlist.filePath))
+
+      await Promise.all(deleteCoverPromises)
+
+      // 删除所有歌单中的歌曲文件
+      const deleteSongPromises = []
+      playlists.forEach((playlist) => {
+        if (playlist.songs && playlist.songs.length > 0) {
+          playlist.songs
+            .filter((song) => song.filePath)
+            .forEach((song) => {
+              deleteSongPromises.push(deleteStorageFile(song.filePath))
+            })
+        }
+      })
+
+      await Promise.all(deleteSongPromises)
+
       // 再批量删除文档
-      const playlistIds = playlists.map(playlist => playlist.id)
+      const playlistIds = playlists.map((playlist) => playlist.id)
       const success = await batchDeleteDocs('playlists', playlistIds)
       return success
     } catch (err) {
@@ -108,14 +131,91 @@ const useDelete = () => {
     }
   }
 
-  return { 
-    error, 
-    isPending, 
-    deleteDoc, 
-    batchDeleteDocs, 
+  // 删除单个歌曲（包括音频文件）
+  const deleteSong = async (playlistId, song) => {
+    try {
+      error.value = null
+      isPending.value = true
+
+      // 先删除存储中的音频文件
+      if (song.filePath) {
+        await deleteStorageFile(song.filePath)
+      }
+
+      // 获取当前歌单数据
+      const playlistDoc = await projectFirestore.collection('playlists').doc(playlistId).get()
+      if (!playlistDoc.exists) {
+        throw new Error('歌单不存在')
+      }
+
+      const playlistData = playlistDoc.data()
+      const updatedSongs = playlistData.songs.filter((s) => s.id !== song.id)
+
+      // 更新歌单文档
+      await projectFirestore.collection('playlists').doc(playlistId).update({
+        songs: updatedSongs,
+      })
+
+      console.log('歌曲删除成功:', song.title)
+      isPending.value = false
+      return true
+    } catch (err) {
+      console.error('删除歌曲失败:', err.message)
+      error.value = '删除歌曲失败'
+      isPending.value = false
+      return false
+    }
+  }
+
+  // 批量删除歌曲（包括音频文件）
+  const batchDeleteSongs = async (playlistId, songsToDelete) => {
+    try {
+      error.value = null
+      isPending.value = true
+
+      // 先删除所有音频文件
+      const deleteFilePromises = songsToDelete
+        .filter((song) => song.filePath)
+        .map((song) => deleteStorageFile(song.filePath))
+
+      await Promise.all(deleteFilePromises)
+
+      // 获取当前歌单数据
+      const playlistDoc = await projectFirestore.collection('playlists').doc(playlistId).get()
+      if (!playlistDoc.exists) {
+        throw new Error('歌单不存在')
+      }
+
+      const playlistData = playlistDoc.data()
+      const songIdsToDelete = songsToDelete.map((song) => song.id)
+      const updatedSongs = playlistData.songs.filter((song) => !songIdsToDelete.includes(song.id))
+
+      // 更新歌单文档
+      await projectFirestore.collection('playlists').doc(playlistId).update({
+        songs: updatedSongs,
+      })
+
+      console.log('批量删除歌曲成功:', songsToDelete.length)
+      isPending.value = false
+      return true
+    } catch (err) {
+      console.error('批量删除歌曲失败:', err.message)
+      error.value = '批量删除歌曲失败'
+      isPending.value = false
+      return false
+    }
+  }
+
+  return {
+    error,
+    isPending,
+    deleteDoc,
+    batchDeleteDocs,
     deleteStorageFile,
     deletePlaylist,
-    batchDeletePlaylists
+    batchDeletePlaylists,
+    deleteSong,
+    batchDeleteSongs,
   }
 }
 
