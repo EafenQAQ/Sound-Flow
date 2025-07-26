@@ -40,14 +40,14 @@
 
       <!-- 进度条区域 -->
       <div class="progress-area">
-        <span class="time current-time">0:00</span>
+        <span class="time current-time">{{ formattedCurrentTime }}</span>
         <div class="progress-bar">
           <div class="progress-track">
             <div class="progress-fill"></div>
             <div class="progress-thumb"></div>
           </div>
         </div>
-        <span class="time total-time">3:45</span>
+        <span class="time total-time">{{ formattedDuration }}</span>
       </div>
     </div>
 
@@ -73,7 +73,7 @@
 
 <script setup>
 import { usePlayerStore } from '@/stores/player';
-import { ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import logo from '@/assets/logo/logo.webp'
 
 const player = ref(null) // 播放器本身
@@ -100,8 +100,29 @@ const handlePlay = async () => {
   }
 }
 
+onMounted(() => {
+  if (!player.value) return
 
+  // 为播放器设置事件监听器
+  player.value.addEventListener('timeupdate', () => {
+    playerStore.currentTime = player.value.currentTime
 
+  })
+  player.value.addEventListener('loadedmetadata', () => {
+    playerStore.duration = player.value.duration
+  })
+}
+)
+// 格式化时间显示
+const formatTime = (seconds) => {
+  if (!seconds || isNaN(seconds)) return '0:00'
+  const mins = Math.floor(seconds / 60)
+  const secs = Math.floor(seconds % 60)
+  return `${mins}:${secs.toString().padStart(2, '0')}`
+}
+
+const formattedCurrentTime = computed(() => formatTime(playerStore.currentTime))
+const formattedDuration = computed(() => formatTime(playerStore.duration))
 
 </script>
 

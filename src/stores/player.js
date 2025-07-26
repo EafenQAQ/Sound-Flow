@@ -8,7 +8,8 @@ export const usePlayerStore = defineStore('player', () => {
   const isPlaying = ref(false)
   const currentTime = ref(0)
   const duration = ref(0)
-  const volume = ref(50)
+  const volume = ref(0.7) // 0-1之间
+  const isMuted = ref(false)
 
   //Getters
   const currentPlaylist = computed(() => currentDoc.value?.songs || [])
@@ -44,7 +45,7 @@ export const usePlayerStore = defineStore('player', () => {
       currentSongIndex.value--
     }
   }
-
+ 
   return {
     currentDoc,
     currentSongIndex,
