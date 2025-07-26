@@ -4,45 +4,62 @@ import { ref, computed } from 'vue'
 export const usePlayerStore = defineStore('player', () => {
   //State
   const currentDoc = ref(null)
-  const currentPlaylist = ref(null)
-  const currentSong = ref(null)
+  const currentSongIndex = ref(0)
   const isPlaying = ref(false)
   const currentTime = ref(0)
   const duration = ref(0)
   const volume = ref(50)
 
   //Getters
+  const currentPlaylist = computed(() => currentDoc.value?.songs || [])
+  const currentSong = computed(() => currentPlaylist.value[currentSongIndex.value] || null)
+  const coverUrl = computed(() => currentDoc.value?.coverUrl || '')
+  const songUrl = computed(() => currentSong.value?.songUrl || '')
+
   // Actions
-  const initPlaylist = (playlist) => {
-    if (playlist) {
-      currentDoc.value = playlist
+  const initPlaylist = (doc) => {
+    currentDoc.value = doc
+    currentSongIndex.value = 0
+    console.log('初始化歌单:', doc?.title)
+  }
+
+  const playSong = (songIndex) => {
+    if (songIndex >= 0 && songIndex < currentPlaylist.value.length) {
+      currentSongIndex.value = songIndex
+      isPlaying.value = true
     }
+  }
+  const togglePlay = () => {
+    isPlaying.value = !isPlaying.value
+  }
 
-    if (playlist && playlist.songs) {
-      currentPlaylist.value = [...playlist.songs]
-
-      if (playlist.songs.length > 0) {
-        currentSong.value = playlist.songs[0]
-      } else {
-        currentSong.value = null
-      }
+  const nextSong = () => {
+    if (currentSongIndex.value < currentPlaylist.value.length - 1) {
+      currentSongIndex.value++
     }
   }
 
-  const changeSong = () => {
-    isPlaying.value = true
+  const previousSong = () => {
+    if (currentSongIndex.value > 0) {
+      currentSongIndex.value--
+    }
   }
 
   return {
     currentDoc,
-    currentPlaylist,
-    currentSong,
+    currentSongIndex,
     isPlaying,
     currentTime,
     duration,
     volume,
-
+    currentPlaylist,
+    currentSong,
+    coverUrl,
+    songUrl,
     initPlaylist,
-    changeSong,
+    playSong,
+    togglePlay,
+    nextSong,
+    previousSong,
   }
 })

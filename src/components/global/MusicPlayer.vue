@@ -1,27 +1,28 @@
 <template>
-  <div id="MusicPlayer">
+  <div v-if="playerStore.currentSong" id="MusicPlayer">
     <!-- 专辑封面 -->
-    <div v-if="playerCoverUrl" class="album-cover">
-      <img :src="playerCoverUrl" alt="专辑封面" class="cover-image">
+    <div class="album-cover">
+      <img :src="playerStore.coverUrl || defaultCover" alt="专辑封面" class="cover-image">
     </div>
 
     <!-- 歌曲信息 -->
-    <div v-if="song" class="song-info">
-      <div class="song-title">{{ song.title }}</div>
-      <div class="artist-name">{{ song.artist }}</div>
+    <div class="song-info">
+      <div class="song-title">{{ playerStore.currentSong.title }}</div>
+      <div class="artist-name">{{ playerStore.currentSong.artist }}</div>
     </div>
 
     <!-- 播放控制区域 -->
     <div class="controls">
       <!-- 播放按钮组 -->
       <div class="control-buttons">
+        <!-- 上一首 -->
         <button class="control-btn prev-btn">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
           </svg>
         </button>
-
-        <button @click="playSong" class="control-btn play-btn">
+        <!-- 播放/暂停 -->
+        <button @click="handlePlay" class="control-btn play-btn">
           <svg v-if="!playerStore.isPlaying" viewBox="0 0 24 24" fill="currentColor" class="play-icon">
             <path d="M8 5v14l11-7z" />
           </svg>
@@ -29,7 +30,7 @@
             <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
           </svg>
         </button>
-
+        <!-- 下一首 -->
         <button class="control-btn next-btn">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
@@ -66,49 +67,22 @@
       </div>
     </div>
 
-    <audio :src="songUrl" ref="player"></audio>
+    <audio :src="playerStore.songUrl" ref="player"></audio>
   </div>
 </template>
 
 <script setup>
 import { usePlayerStore } from '@/stores/player';
-import { ref, watch } from 'vue';
-
+import { ref } from 'vue';
+import logo from '@/assets/logo/logo.webp'
 
 const player = ref(null) // 播放器本身
-const playlist = ref(null) // 当前播放列表
-const song = ref(null) // 当前播放歌曲
-const songUrl = ref(null) // 当前播放歌曲的URL
-const playerCoverUrl = ref(null) // 当前歌单封面
+const defaultCover = ref(logo)
 
 const playerStore = usePlayerStore()
 
-// 监听当前播放的歌曲
-watch(() => playerStore.currentSong, (newSong) => {
-  song.value = newSong
-  songUrl.value = newSong?.songUrl || '';
-
-}, { immediate: true }
-)
-
-// 监听当前播放的歌单
-watch(() => playerStore.currentPlaylist, (newPlaylist) => {
-  playlist.value = newPlaylist
-  playerCoverUrl.value = playerStore.currentDoc?.coverUrl || ''
-  console.log('播放器封面Url：', playerCoverUrl.value)
-
-
-}, { immediate: true }
-)
-
-
-// 点击播放
-const playSong = async () => {
-  console.log('当前播放的歌单:', playlist.value)
-  console.log('当前播放的歌曲:', song.value)
-  console.log('当前播放的歌曲的URL:', songUrl.value)
-
-  if (!songUrl.value) {
+const handlePlay = async () => {
+  if (!playerStore.songUrl) {
     console.error('歌曲URL为空！')
     return
   }
@@ -116,21 +90,17 @@ const playSong = async () => {
   try {
     if (playerStore.isPlaying) {
       player.value.pause()
-      playerStore.isPlaying = false
+
     } else {
-      // 确保音频元素已加载
-      await player.value.load()
       await player.value.play()
-      playerStore.isPlaying = true
     }
-  } catch (error) {
-    console.error('播放失败:', error)
-    // 处理自动播放被阻止的情况
-    if (error.name === 'NotAllowedError') {
-      alert('浏览器阻止了自动播放，请手动点击播放')
-    }
+    playerStore.togglePlay()
+  } catch (err) {
+    console.error('播放失败', err)
   }
 }
+
+
 
 
 </script>
