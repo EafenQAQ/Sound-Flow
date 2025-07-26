@@ -43,8 +43,8 @@
         <span class="time current-time">{{ formattedCurrentTime }}</span>
         <div class="progress-bar">
           <div class="progress-track">
-            <div class="progress-fill"></div>
-            <div class="progress-thumb"></div>
+            <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
+            <div class="progress-thumb" :style="{ left: progressPercent + '%' }"></div>
           </div>
         </div>
         <span class="time total-time">{{ formattedDuration }}</span>
@@ -67,13 +67,14 @@
       </div>
     </div>
 
-    <audio :src="playerStore.songUrl" ref="player"></audio>
+    <audio @timeupdate="handleTimeUpdate" @loadedmetadata="handleLoadedMetadata" @play="handleAudioPlay"
+      @pause="handleAudioPause" @ended="handleSongEnd" :src="playerStore.songUrl" ref="player"></audio>
   </div>
 </template>
 
 <script setup>
 import { usePlayerStore } from '@/stores/player';
-import { onMounted, ref, computed } from 'vue';
+import { ref, computed } from 'vue';
 import logo from '@/assets/logo/logo.webp'
 
 const player = ref(null) // 播放器本身
@@ -81,38 +82,57 @@ const defaultCover = ref(logo)
 
 const playerStore = usePlayerStore()
 
+// 当音频的播放时间更新时触发
+const handleTimeUpdate = (event) => {
+  playerStore.currentTime = event.target.currentTime
+}
+
+// 当音频的元数据加载完成后触发
+const handleLoadedMetadata = (event) => {
+  playerStore.duration = event.target.duration
+}
+
+// 当音频开始播放时触发
+const handleAudioPlay = () => {
+  playerStore.isPlaying = true;
+}
+
+// 当音频暂停时触发
+const handleAudioPause = () => {
+  playerStore.isPlaying = false;
+}
+
+// (可选，但推荐) 当歌曲播放结束时触发
+const handleSongEnd = () => {
+  // 这里可以添加自动播放下一首的逻辑
+  console.log("歌曲播放结束");
+  playerStore.isPlaying = false;
+  playerStore.nextSong();
+}
+
+
+
 const handlePlay = async () => {
-  if (!playerStore.songUrl) {
-    console.error('歌曲URL为空！')
+  if (!player.value || !playerStore.songUrl) {
+    console.error('播放器实例或歌曲URL为空！')
     return
   }
 
   try {
-    if (playerStore.isPlaying) {
-      player.value.pause()
-
-    } else {
+    // 直接根据 audio 元素的 paused 状态来决定操作
+    if (player.value.paused) {
       await player.value.play()
+    } else {
+      player.value.pause()
     }
-    playerStore.togglePlay()
   } catch (err) {
-    console.error('播放失败', err)
+    console.error('播放/暂停操作失败', err)
+    // 如果播放失败，确保状态正确
+    playerStore.isPlaying = false;
   }
 }
 
-onMounted(() => {
-  if (!player.value) return
 
-  // 为播放器设置事件监听器
-  player.value.addEventListener('timeupdate', () => {
-    playerStore.currentTime = player.value.currentTime
-
-  })
-  player.value.addEventListener('loadedmetadata', () => {
-    playerStore.duration = player.value.duration
-  })
-}
-)
 // 格式化时间显示
 const formatTime = (seconds) => {
   if (!seconds || isNaN(seconds)) return '0:00'
@@ -124,6 +144,11 @@ const formatTime = (seconds) => {
 const formattedCurrentTime = computed(() => formatTime(playerStore.currentTime))
 const formattedDuration = computed(() => formatTime(playerStore.duration))
 
+
+// 动态更新进度条UI
+const progressPercent = computed(() => {
+  return playerStore.duration ? (playerStore.currentTime / playerStore.duration) * 100 : 0
+})
 </script>
 
 <style scoped>
@@ -294,14 +319,14 @@ const formattedDuration = computed(() => formatTime(playerStore.duration))
   height: 100%;
   background: linear-gradient(90deg, #ff6b6b, #feca57);
   border-radius: 2px;
-  width: 30%;
+  /* width: 60%; */
   transition: width 0.1s ease;
 }
 
 .progress-thumb {
   position: absolute;
   top: 50%;
-  left: 30%;
+  /* left: 30%; */
   transform: translate(-50%, -50%);
   width: 12px;
   height: 12px;

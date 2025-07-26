@@ -45,7 +45,7 @@ export const usePlayerStore = defineStore('player', () => {
       currentSongIndex.value--
     }
   }
- 
+
   return {
     currentDoc,
     currentSongIndex,

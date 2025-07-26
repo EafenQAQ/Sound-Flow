@@ -35,7 +35,7 @@
                   <p class="song-artist">{{ song.artist }}</p>
                 </div>
                 <div class="song-actions">
-                  <button class="play-btn">▶</button>
+                  <button @click="handlePlay(index)" class="play-btn">▶</button>
                 </div>
               </div>
             </div>
@@ -78,6 +78,12 @@ watch(document, (newDoc) => {
   playerStore.initPlaylist(newDoc)
 }, { immediate: true }
 )
+
+
+// 播放歌曲
+const handlePlay = (index) => {
+  playerStore.playSong(index)
+}
 
 </script>
 
