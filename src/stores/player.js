@@ -10,6 +10,7 @@ export const usePlayerStore = defineStore('player', () => {
   const duration = ref(0)
   const volume = ref(0.7) // 0-1之间
   const isMuted = ref(false)
+  const informMessage = ref('')
 
   //Getters
   const currentPlaylist = computed(() => currentDoc.value?.songs || [])
@@ -38,6 +39,9 @@ export const usePlayerStore = defineStore('player', () => {
     if (currentSongIndex.value < currentPlaylist.value.length - 1) {
       currentSongIndex.value++
       isPlaying.value = true
+    } else {
+      informMessage.value = '后面没有歌啦~'
+      
     }
   }
 
@@ -45,6 +49,8 @@ export const usePlayerStore = defineStore('player', () => {
     if (currentSongIndex.value > 0) {
       currentSongIndex.value--
       isPlaying.value = true
+    } else {
+      informMessage.value = '前面没有歌啦~'
     }
   }
 
@@ -59,6 +65,7 @@ export const usePlayerStore = defineStore('player', () => {
     currentSong,
     coverUrl,
     songUrl,
+    informMessage,
     initPlaylist,
     playSong,
     togglePlay,

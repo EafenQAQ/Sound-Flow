@@ -8,9 +8,9 @@
         <component :is="Component" :key="route.path" />
       </Transition>
     </RouterView>
-    
-  </div>
 
+
+  </div>
   <MusicPlayer />
 </template>
 
@@ -22,4 +22,6 @@ import MusicPlayer from './components/global/MusicPlayer.vue';
 
 </script>
 
-<style scoped></style>
+<style scoped>
+
+</style>

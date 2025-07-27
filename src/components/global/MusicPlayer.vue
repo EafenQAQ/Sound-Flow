@@ -69,18 +69,35 @@
 
     <audio @timeupdate="handleTimeUpdate" @loadedmetadata="handleLoadedMetadata" @play="handleAudioPlay"
       @pause="handleAudioPause" @ended="handleSongEnd" :src="playerStore.songUrl" ref="player"></audio>
+
+    <Teleport to="body">
+      <Transition name="inform" mode="out-in">
+        <div v-if="playerStore.informMessage" class="inform">
+          {{ playerStore.informMessage }}
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
 import { usePlayerStore } from '@/stores/player';
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick, onUnmounted } from 'vue';
+import useInform from '@/composables/useInform';
 import logo from '@/assets/logo/logo.webp'
 
 const player = ref(null) // 播放器本身
 const defaultCover = ref(logo)
 
 const playerStore = usePlayerStore()
+
+// 使用 inform 自动消失逻辑
+const { cleanup } = useInform()
+
+// 组件卸载时清理定时器
+onUnmounted(() => {
+  cleanup()
+})
 
 // 当音频的播放时间更新时触发
 const handleTimeUpdate = (event) => {
@@ -349,7 +366,7 @@ watch(() => playerStore.songUrl, (newUrl) => {
 
 .progress-fill {
   height: 100%;
-  background: #888888;
+  background: #808080;
   border-radius: 2px;
   /* width: 60%; */
   transition: width 0.1s ease;
@@ -388,8 +405,8 @@ watch(() => playerStore.songUrl, (newUrl) => {
   border-radius: 50%;
   color: white;
   cursor: pointer;
-  width: 36px;
-  height: 36px;
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -425,7 +442,7 @@ watch(() => playerStore.songUrl, (newUrl) => {
 
 .volume-fill {
   height: 100%;
-  background: #888888;
+  background: #808080;
   border-radius: 1.5px;
   width: 70%;
   transition: width 0.1s ease;
@@ -497,5 +514,23 @@ watch(() => playerStore.songUrl, (newUrl) => {
   .progress-area {
     max-width: 200px;
   }
+}
+
+/* Transition */
+.inform-enter-active,
+.inform-leave-active {
+  transition: all 0.3s ease;
+}
+
+.inform-enter-from,
+.inform-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.8);
+}
+
+.inform-enter-to,
+.inform-leave-from {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
 }
 </style>
