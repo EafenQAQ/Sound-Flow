@@ -256,7 +256,7 @@ const handleSeekMove = (e) => {
   // 在拖动时持续更新UI
   const progressBar = document.querySelector('.progress-bar');
   if (progressBar) {
-    const percentage = calculateTimeFromEvent(e);
+    const percentage = calculateTimeFromEvent(e, progressBar);
 
     if (playerStore.duration) {
       const seekTime = percentage * playerStore.duration;
@@ -353,15 +353,14 @@ const handleVolumeDragEnd = (e) => {
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
   width: 100%;
   height: 100px;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  z-index: 1000;
+  position: relative;
+  z-index: 10;
   display: flex;
   align-items: center;
   padding: 0 20px;
   color: white;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin-top: auto;
 }
 
 /* 专辑封面样式 */
@@ -372,6 +371,7 @@ const handleVolumeDragEnd = (e) => {
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   flex-shrink: 0;
+  min-width: 70px;
 }
 
 .cover-image {
@@ -388,8 +388,10 @@ const handleVolumeDragEnd = (e) => {
 /* 歌曲信息样式 */
 .song-info {
   margin-left: 16px;
-  flex-shrink: 0;
-  min-width: 200px;
+  flex-shrink: 1;
+  min-width: 120px;
+  max-width: 200px;
+  overflow: hidden;
 }
 
 .song-title {
@@ -415,7 +417,8 @@ const handleVolumeDragEnd = (e) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 0 20px;
+  margin: 0 16px;
+  min-width: 0;
 }
 
 /* 控制按钮组 */
@@ -480,8 +483,9 @@ const handleVolumeDragEnd = (e) => {
   display: flex;
   align-items: center;
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
   gap: 12px;
+  min-width: 0;
 }
 
 .time {
@@ -493,17 +497,19 @@ const handleVolumeDragEnd = (e) => {
 
 .progress-bar {
   flex: 1;
-  height: 20px;
+  height: 24px;
   display: flex;
   align-items: center;
   cursor: pointer;
+  min-width: 80px;
+  padding: 8px 0;
 }
 
 .progress-track {
   width: 100%;
-  height: 4px;
+  height: 6px;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
+  border-radius: 3px;
   position: relative;
   overflow: hidden;
 }
@@ -511,27 +517,31 @@ const handleVolumeDragEnd = (e) => {
 .progress-fill {
   height: 100%;
   background: #808080;
-  border-radius: 2px;
-  /* width: 60%; */
+  border-radius: 3px;
   transition: width 0.1s ease;
 }
 
 .progress-thumb {
   position: absolute;
   top: 50%;
-  /* left: 30%; */
   transform: translate(-50%, -50%);
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   background: white;
   border-radius: 50%;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: all 0.2s ease;
+  cursor: grab;
 }
 
 .progress-bar:hover .progress-thumb {
   opacity: 1;
+}
+
+.progress-bar:active .progress-thumb {
+  cursor: grabbing;
+  transform: translate(-50%, -50%) scale(1.1);
 }
 
 /* 音量控制样式 */
@@ -539,7 +549,7 @@ const handleVolumeDragEnd = (e) => {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 120px;
+  min-width: 100px;
   flex-shrink: 0;
 }
 
@@ -549,8 +559,8 @@ const handleVolumeDragEnd = (e) => {
   border-radius: 50%;
   color: white;
   cursor: pointer;
-  width: 64px;
-  height: 64px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -568,18 +578,19 @@ const handleVolumeDragEnd = (e) => {
 }
 
 .volume-slider {
-  width: 80px;
-  height: 20px;
+  width: 60px;
+  height: 24px;
   display: flex;
   align-items: center;
   cursor: pointer;
+  padding: 8px 0;
 }
 
 .volume-track {
   width: 100%;
-  height: 3px;
+  height: 4px;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 1.5px;
+  border-radius: 2px;
   position: relative;
   overflow: hidden;
 }
@@ -587,37 +598,80 @@ const handleVolumeDragEnd = (e) => {
 .volume-fill {
   height: 100%;
   background: #808080;
-  border-radius: 1.5px;
-  /* width: 70%; */
+  border-radius: 2px;
   transition: width 0.1s ease;
 }
 
 .volume-thumb {
   position: absolute;
   top: 50%;
-  left: 70%;
   transform: translate(-50%, -50%);
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   background: white;
   border-radius: 50%;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: all 0.2s ease;
+  cursor: grab;
 }
 
 .volume-slider:hover .volume-thumb {
   opacity: 1;
 }
 
+.volume-slider:active .volume-thumb {
+  cursor: grabbing;
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
 /* 响应式设计 */
+/* 大屏幕优化 */
+@media (min-width: 1200px) {
+  #MusicPlayer {
+    padding: 0 40px;
+  }
+
+  .progress-area {
+    max-width: 800px;
+  }
+
+  .volume-slider {
+    width: 100px;
+  }
+}
+
+/* 中等屏幕 */
+@media (max-width: 1024px) {
+  #MusicPlayer {
+    padding: 0 16px;
+  }
+
+  .controls {
+    margin: 0 12px;
+  }
+
+  .progress-area {
+    max-width: 500px;
+  }
+}
+
+/* 平板设备 */
 @media (max-width: 768px) {
   #MusicPlayer {
     padding: 0 12px;
+    height: 90px;
+  }
+
+  .album-cover {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
   }
 
   .song-info {
-    min-width: 150px;
+    min-width: 100px;
+    max-width: 150px;
     margin-left: 12px;
   }
 
@@ -630,33 +684,319 @@ const handleVolumeDragEnd = (e) => {
   }
 
   .controls {
-    margin: 0 12px;
+    margin: 0 8px;
+  }
+
+  .control-buttons {
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .prev-btn,
+  .next-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .prev-btn svg,
+  .next-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .play-btn {
+    width: 44px;
+    height: 44px;
+    margin: 0 6px;
+  }
+
+  .play-btn svg {
+    width: 20px;
+    height: 20px;
   }
 
   .progress-area {
-    max-width: 300px;
+    max-width: 350px;
+    gap: 8px;
+  }
+
+  .time {
+    font-size: 11px;
+    min-width: 30px;
+  }
+
+  .progress-bar {
+    height: 20px;
+    min-width: 60px;
+  }
+
+  .progress-track {
+    height: 5px;
+  }
+
+  .progress-thumb {
+    width: 14px;
+    height: 14px;
   }
 
   .volume-control {
-    min-width: 100px;
+    min-width: 80px;
   }
 
   .volume-slider {
-    width: 60px;
+    width: 50px;
+  }
+
+  .volume-thumb {
+    width: 10px;
+    height: 10px;
   }
 }
 
-@media (max-width: 480px) {
-  .volume-control {
-    display: none;
+/* 手机设备 */
+@media (max-width: 640px) {
+  #MusicPlayer {
+    height: 80px;
+    padding: 0 8px;
+  }
+
+  .album-cover {
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
   }
 
   .song-info {
-    min-width: 120px;
+    min-width: 80px;
+    max-width: 120px;
+    margin-left: 8px;
+  }
+
+  .song-title {
+    font-size: 13px;
+  }
+
+  .artist-name {
+    font-size: 11px;
+  }
+
+  .controls {
+    margin: 0 6px;
+  }
+
+  .control-buttons {
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+
+  .prev-btn,
+  .next-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .prev-btn svg,
+  .next-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .play-btn {
+    width: 40px;
+    height: 40px;
+    margin: 0 4px;
+  }
+
+  .play-btn svg {
+    width: 18px;
+    height: 18px;
   }
 
   .progress-area {
-    max-width: 200px;
+    max-width: 250px;
+    gap: 6px;
+  }
+
+  .time {
+    font-size: 10px;
+    min-width: 28px;
+  }
+
+  .progress-bar {
+    height: 18px;
+    min-width: 50px;
+  }
+
+  .progress-track {
+    height: 4px;
+  }
+
+  .progress-thumb {
+    width: 12px;
+    height: 12px;
+  }
+
+  .volume-control {
+    min-width: 70px;
+  }
+
+  .volume-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .volume-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .volume-slider {
+    width: 40px;
+    height: 20px;
+  }
+
+  .volume-track {
+    height: 3px;
+  }
+
+  .volume-thumb {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+/* 小屏手机 */
+@media (max-width: 480px) {
+  #MusicPlayer {
+    height: 70px;
+    padding: 0 6px;
+  }
+
+  .album-cover {
+    width: 45px;
+    height: 45px;
+    min-width: 45px;
+  }
+
+  .song-info {
+    min-width: 70px;
+    max-width: 100px;
+    margin-left: 6px;
+  }
+
+  .song-title {
+    font-size: 12px;
+  }
+
+  .artist-name {
+    font-size: 10px;
+  }
+
+  .controls {
+    margin: 0 4px;
+  }
+
+  .control-buttons {
+    gap: 3px;
+    margin-bottom: 4px;
+  }
+
+  .prev-btn,
+  .next-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .prev-btn svg,
+  .next-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .play-btn {
+    width: 36px;
+    height: 36px;
+    margin: 0 3px;
+  }
+
+  .play-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .progress-area {
+    max-width: 180px;
+    gap: 4px;
+  }
+
+  .time {
+    font-size: 9px;
+    min-width: 25px;
+  }
+
+  .progress-bar {
+    height: 16px;
+    min-width: 40px;
+  }
+
+  .progress-track {
+    height: 3px;
+  }
+
+  .progress-thumb {
+    width: 10px;
+    height: 10px;
+  }
+
+  /* 在小屏幕上隐藏音量控制 */
+  .volume-control {
+    display: none;
+  }
+}
+
+/* 超小屏幕 */
+@media (max-width: 360px) {
+  #MusicPlayer {
+    height: 65px;
+    padding: 0 4px;
+  }
+
+  .album-cover {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+
+  .song-info {
+    min-width: 60px;
+    max-width: 80px;
+    margin-left: 4px;
+  }
+
+  .song-title {
+    font-size: 11px;
+  }
+
+  .artist-name {
+    font-size: 9px;
+  }
+
+  .controls {
+    margin: 0 2px;
+  }
+
+  .progress-area {
+    max-width: 140px;
+    gap: 3px;
+  }
+
+  .time {
+    font-size: 8px;
+    min-width: 22px;
+  }
+
+  .progress-bar {
+    min-width: 30px;
   }
 }
 
