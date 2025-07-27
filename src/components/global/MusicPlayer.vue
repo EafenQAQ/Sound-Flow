@@ -41,7 +41,7 @@
       <!-- 进度条区域 -->
       <div class="progress-area">
         <span class="time current-time">{{ formattedCurrentTime }}</span>
-        <div @mousedown.prevent="handleSeekStart" class="progress-bar">
+        <div @mousedown.prevent="handleSeekStart" @touchstart.prevent="handleSeekStart" class="progress-bar">
           <div class="progress-track">
             <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
             <div class="progress-thumb" :style="{ left: progressPercent + '%' }"></div>
@@ -59,7 +59,7 @@
             d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
         </svg>
       </button>
-      <div @mousedown.prevent="handleVolumeDragStart" class="volume-slider">
+      <div @mousedown.prevent="handleVolumeDragStart" @touchstart.prevent="handleVolumeDragStart" class="volume-slider">
         <div class="volume-track">
           <div class="volume-fill" :style="{ width: volumePercent + '%' }"></div>
           <div class="volume-thumb" :style="{ left: volumePercent + '%' }"></div>
@@ -219,7 +219,10 @@ const calculateTimeFromEvent = (event, progressBar) => {
   const bar = progressBar || event.currentTarget;
   // getBoundingClientRect() 方法返回元素的大小及其相对于视口的位置。
   const rect = bar.getBoundingClientRect();
-  const offsetX = event.clientX - rect.left; // 计算鼠标点击位置相对于进度条左侧的偏移
+
+  // 支持触摸事件和鼠标事件
+  const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+  const offsetX = clientX - rect.left; // 计算点击/触摸位置相对于进度条左侧的偏移
   const barWidth = bar.clientWidth;
   const percentage = Math.min(Math.max(0, offsetX / barWidth), 1); // 确保百分比在 0-1 之间
 
@@ -243,9 +246,11 @@ const handleSeekStart = (e) => {
   }
 
 
-  // 添加全局事件监听器
+  // 添加全局事件监听器（支持鼠标和触摸）
   window.addEventListener('mousemove', handleSeekMove);
   window.addEventListener('mouseup', handleSeekEnd);
+  window.addEventListener('touchmove', handleSeekMove);
+  window.addEventListener('touchend', handleSeekEnd);
 
 }
 
@@ -269,9 +274,11 @@ const handleSeekMove = (e) => {
 
 // 拖动结束
 const handleSeekEnd = (e) => {
-  // 移除事件监听器
+  // 移除事件监听器（鼠标和触摸）
   window.removeEventListener('mousemove', handleSeekMove);
   window.removeEventListener('mouseup', handleSeekEnd);
+  window.removeEventListener('touchmove', handleSeekMove);
+  window.removeEventListener('touchend', handleSeekEnd);
 
   if (!isSeeking.value) return;
 
@@ -306,9 +313,11 @@ const handleVolumeDragStart = (e) => {
   const percentage = calculateTimeFromEvent(e);
   playerStore.setVolume(percentage)
 
-  // 添加全局事件监听器
+  // 添加全局事件监听器（支持鼠标和触摸）
   window.addEventListener('mousemove', handleVolumeDragging);
   window.addEventListener('mouseup', handleVolumeDragEnd);
+  window.addEventListener('touchmove', handleVolumeDragging);
+  window.addEventListener('touchend', handleVolumeDragEnd);
 }
 
 const handleVolumeDragging = (e) => {
@@ -323,9 +332,11 @@ const handleVolumeDragging = (e) => {
 
 const handleVolumeDragEnd = (e) => {
   if (!isDraggingVolume.value) return;
-  // 移除事件监听器
+  // 移除事件监听器（鼠标和触摸）
   window.removeEventListener('mousemove', handleVolumeDragging);
   window.removeEventListener('mouseup', handleVolumeDragEnd);
+  window.removeEventListener('touchmove', handleVolumeDragging);
+  window.removeEventListener('touchend', handleVolumeDragEnd);
 
   const volumeSlider = document.querySelector('.volume-slider');
   if (volumeSlider) {
@@ -452,26 +463,26 @@ const handleVolumeDragEnd = (e) => {
 
 .prev-btn,
 .next-btn {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
 }
 
 .prev-btn svg,
 .next-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
 }
 
 .play-btn {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   background: rgba(255, 255, 255, 0.15);
   margin: 0 8px;
 }
 
 .play-btn svg {
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
 }
 
 .play-btn:hover {
@@ -503,6 +514,13 @@ const handleVolumeDragEnd = (e) => {
   cursor: pointer;
   min-width: 80px;
   padding: 8px 0;
+  touch-action: none;
+  /* 防止触摸时的默认行为 */
+  -webkit-touch-callout: none;
+  /* 禁用长按菜单 */
+  -webkit-user-select: none;
+  /* 禁用文本选择 */
+  user-select: none;
 }
 
 .progress-track {
@@ -559,8 +577,8 @@ const handleVolumeDragEnd = (e) => {
   border-radius: 50%;
   color: white;
   cursor: pointer;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -573,8 +591,8 @@ const handleVolumeDragEnd = (e) => {
 }
 
 .volume-btn svg {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
 }
 
 .volume-slider {
@@ -584,6 +602,13 @@ const handleVolumeDragEnd = (e) => {
   align-items: center;
   cursor: pointer;
   padding: 8px 0;
+  touch-action: none;
+  /* 防止触摸时的默认行为 */
+  -webkit-touch-callout: none;
+  /* 禁用长按菜单 */
+  -webkit-user-select: none;
+  /* 禁用文本选择 */
+  user-select: none;
 }
 
 .volume-track {
@@ -694,25 +719,25 @@ const handleVolumeDragEnd = (e) => {
 
   .prev-btn,
   .next-btn {
-    width: 36px;
-    height: 36px;
+    width: 42px;
+    height: 42px;
   }
 
   .prev-btn svg,
   .next-btn svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
   }
 
   .play-btn {
-    width: 44px;
-    height: 44px;
+    width: 52px;
+    height: 52px;
     margin: 0 6px;
   }
 
   .play-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 26px;
+    height: 26px;
   }
 
   .progress-area {
@@ -735,8 +760,8 @@ const handleVolumeDragEnd = (e) => {
   }
 
   .progress-thumb {
-    width: 14px;
-    height: 14px;
+    width: 18px;
+    height: 18px;
   }
 
   .volume-control {
@@ -748,8 +773,8 @@ const handleVolumeDragEnd = (e) => {
   }
 
   .volume-thumb {
-    width: 10px;
-    height: 10px;
+    width: 14px;
+    height: 14px;
   }
 }
 
@@ -791,25 +816,25 @@ const handleVolumeDragEnd = (e) => {
 
   .prev-btn,
   .next-btn {
-    width: 32px;
-    height: 32px;
+    width: 38px;
+    height: 38px;
   }
 
   .prev-btn svg,
   .next-btn svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
   }
 
   .play-btn {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     margin: 0 4px;
   }
 
   .play-btn svg {
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
   }
 
   .progress-area {
@@ -832,8 +857,8 @@ const handleVolumeDragEnd = (e) => {
   }
 
   .progress-thumb {
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
   }
 
   .volume-control {
@@ -841,13 +866,13 @@ const handleVolumeDragEnd = (e) => {
   }
 
   .volume-btn {
-    width: 32px;
-    height: 32px;
+    width: 38px;
+    height: 38px;
   }
 
   .volume-btn svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
   }
 
   .volume-slider {
@@ -860,8 +885,8 @@ const handleVolumeDragEnd = (e) => {
   }
 
   .volume-thumb {
-    width: 8px;
-    height: 8px;
+    width: 12px;
+    height: 12px;
   }
 }
 
@@ -903,25 +928,25 @@ const handleVolumeDragEnd = (e) => {
 
   .prev-btn,
   .next-btn {
-    width: 28px;
-    height: 28px;
+    width: 34px;
+    height: 34px;
   }
 
   .prev-btn svg,
   .next-btn svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
   }
 
   .play-btn {
-    width: 36px;
-    height: 36px;
+    width: 42px;
+    height: 42px;
     margin: 0 3px;
   }
 
   .play-btn svg {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
   }
 
   .progress-area {
