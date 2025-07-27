@@ -37,12 +37,14 @@ export const usePlayerStore = defineStore('player', () => {
   const nextSong = () => {
     if (currentSongIndex.value < currentPlaylist.value.length - 1) {
       currentSongIndex.value++
+      isPlaying.value = true
     }
   }
 
   const previousSong = () => {
     if (currentSongIndex.value > 0) {
       currentSongIndex.value--
+      isPlaying.value = true
     }
   }
 

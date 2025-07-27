@@ -16,7 +16,7 @@
       <!-- 播放按钮组 -->
       <div class="control-buttons">
         <!-- 上一首 -->
-        <button class="control-btn prev-btn">
+        <button @click="playerStore.previousSong" class="control-btn prev-btn">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
           </svg>
@@ -31,7 +31,7 @@
           </svg>
         </button>
         <!-- 下一首 -->
-        <button class="control-btn next-btn">
+        <button @click="playerStore.nextSong" class="control-btn next-btn">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
           </svg>
@@ -74,7 +74,7 @@
 
 <script setup>
 import { usePlayerStore } from '@/stores/player';
-import { ref, computed } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import logo from '@/assets/logo/logo.webp'
 
 const player = ref(null) // 播放器本身
@@ -149,13 +149,45 @@ const formattedDuration = computed(() => formatTime(playerStore.duration))
 const progressPercent = computed(() => {
   return playerStore.duration ? (playerStore.currentTime / playerStore.duration) * 100 : 0
 })
+
+// 监听歌曲URL的变化，实现自动播放新歌
+
+watch(() => playerStore.songUrl, (newUrl) => {
+  if (!player.value) return;
+
+  // 这个 watch 只处理一个核心场景：
+  // 当歌曲 URL 变化，并且 Store 的意图是“播放”时，就自动播放新歌。
+  if (newUrl && playerStore.isPlaying) {
+
+    // 使用 nextTick 确保 DOM 更新（<audio> 的 src 已改变）
+    nextTick(() => {
+
+      // 定义一个一次性的 canplay 事件处理器
+      const playOnCanPlay = async () => {
+        try {
+          await player.value.play();
+          console.log('新歌曲已自动播放');
+        } catch (error) {
+          console.error("新歌曲自动播放失败:", error);
+          // 如果因浏览器策略等原因播放失败，同步状态
+          playerStore.isPlaying = false;
+        }
+      };
+
+      // 为 canplay 事件添加这个一次性监听器
+      // { once: true } 是关键，确保它只执行一次然后自动移除，避免内存泄漏和重复执行
+      player.value.addEventListener('canplay', playOnCanPlay, { once: true });
+    });
+  }
+});
+
 </script>
 
 <style scoped>
 /* 主容器样式 */
 #MusicPlayer {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  backdrop-filter: blur(20px);
+  background: rgba(149, 149, 149, 0.1);
+  backdrop-filter: blur(10px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
   width: 100%;
@@ -317,7 +349,7 @@ const progressPercent = computed(() => {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ff6b6b, #feca57);
+  background: #888888;
   border-radius: 2px;
   /* width: 60%; */
   transition: width 0.1s ease;
@@ -393,7 +425,7 @@ const progressPercent = computed(() => {
 
 .volume-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ff6b6b, #feca57);
+  background: #888888;
   border-radius: 1.5px;
   width: 70%;
   transition: width 0.1s ease;
