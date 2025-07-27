@@ -41,7 +41,7 @@
       <!-- 进度条区域 -->
       <div class="progress-area">
         <span class="time current-time">{{ formattedCurrentTime }}</span>
-        <div class="progress-bar">
+        <div @mousedown.prevent="handleSeekStart" class="progress-bar">
           <div class="progress-track">
             <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
             <div class="progress-thumb" :style="{ left: progressPercent + '%' }"></div>
@@ -59,10 +59,10 @@
             d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
         </svg>
       </button>
-      <div class="volume-slider">
+      <div @mousedown.prevent="handleVolumeDragStart" class="volume-slider">
         <div class="volume-track">
-          <div class="volume-fill"></div>
-          <div class="volume-thumb"></div>
+          <div class="volume-fill" :style="{ width: volumePercent + '%' }"></div>
+          <div class="volume-thumb" :style="{ left: volumePercent + '%' }"></div>
         </div>
       </div>
     </div>
@@ -89,6 +89,11 @@ import logo from '@/assets/logo/logo.webp'
 const player = ref(null) // 播放器本身
 const defaultCover = ref(logo)
 
+const isSeeking = ref(false) // 是否正在拖动进度条
+const wasPlayingBeforeSeek = ref(false) // 拖动前是否在播放
+const isDraggingVolume = ref(false) // 是否正在拖动音量条
+
+
 const playerStore = usePlayerStore()
 
 // 使用 inform 自动消失逻辑
@@ -101,6 +106,11 @@ onUnmounted(() => {
 
 // 当音频的播放时间更新时触发
 const handleTimeUpdate = (event) => {
+  // 如果正在拖动进度条，则不更新 currentTime
+  if (isSeeking.value) {
+    return
+  }
+
   playerStore.currentTime = event.target.currentTime
 }
 
@@ -167,6 +177,11 @@ const progressPercent = computed(() => {
   return playerStore.duration ? (playerStore.currentTime / playerStore.duration) * 100 : 0
 })
 
+// 动态更新音量条
+const volumePercent = computed(() => {
+  return playerStore.volume * 100
+})
+
 // 监听歌曲URL的变化，实现自动播放新歌
 
 watch(() => playerStore.songUrl, (newUrl) => {
@@ -197,6 +212,135 @@ watch(() => playerStore.songUrl, (newUrl) => {
     });
   }
 });
+
+
+// 计算点击或拖动位置对应的时间
+const calculateTimeFromEvent = (event, progressBar) => {
+  const bar = progressBar || event.currentTarget;
+  // getBoundingClientRect() 方法返回元素的大小及其相对于视口的位置。
+  const rect = bar.getBoundingClientRect();
+  const offsetX = event.clientX - rect.left; // 计算鼠标点击位置相对于进度条左侧的偏移
+  const barWidth = bar.clientWidth;
+  const percentage = Math.min(Math.max(0, offsetX / barWidth), 1); // 确保百分比在 0-1 之间
+
+  return percentage
+};
+
+// 开始拖动
+
+const handleSeekStart = (e) => {
+  if (!player.value) return;
+
+  isSeeking.value = true;
+  wasPlayingBeforeSeek.value = playerStore.isPlaying
+
+  const percentage = calculateTimeFromEvent(e);
+
+  if (playerStore.duration) {
+    const seekTime = percentage * playerStore.duration;
+
+    playerStore.currentTime = seekTime;
+  }
+
+
+  // 添加全局事件监听器
+  window.addEventListener('mousemove', handleSeekMove);
+  window.addEventListener('mouseup', handleSeekEnd);
+
+}
+
+// 拖动过程
+const handleSeekMove = (e) => {
+  if (!isSeeking.value) return;
+
+  // 在拖动时持续更新UI
+  const progressBar = document.querySelector('.progress-bar');
+  if (progressBar) {
+    const percentage = calculateTimeFromEvent(e);
+
+    if (playerStore.duration) {
+      const seekTime = percentage * playerStore.duration;
+
+      playerStore.currentTime = seekTime;
+    }
+
+  }
+}
+
+// 拖动结束
+const handleSeekEnd = (e) => {
+  // 移除事件监听器
+  window.removeEventListener('mousemove', handleSeekMove);
+  window.removeEventListener('mouseup', handleSeekEnd);
+
+  if (!isSeeking.value) return;
+
+  const progressBar = document.querySelector('.progress-bar')
+  if (progressBar) {
+    const percentage = calculateTimeFromEvent(e, progressBar);
+    if (playerStore.duration) {
+
+      const newTime = percentage * playerStore.duration;
+      playerStore.currentTime = newTime;
+      player.value.currentTime = newTime;
+    }
+  }
+
+  isSeeking.value = false
+
+  // 如果拖动前是播放状态，恢复播放
+  if (wasPlayingBeforeSeek.value) {
+    player.value.play().catch((err) => {
+      console.error('恢复播放失败', err)
+    })
+  }
+}
+
+// 拖动音量条
+
+const handleVolumeDragStart = (e) => {
+  if (!player.value) return;
+
+  isDraggingVolume.value = true;
+
+  const percentage = calculateTimeFromEvent(e);
+  playerStore.setVolume(percentage)
+
+  // 添加全局事件监听器
+  window.addEventListener('mousemove', handleVolumeDragging);
+  window.addEventListener('mouseup', handleVolumeDragEnd);
+}
+
+const handleVolumeDragging = (e) => {
+  if (!isDraggingVolume.value) return;
+
+  const volumeSlider = document.querySelector('.volume-slider');
+  if (volumeSlider) {
+    const percentage = calculateTimeFromEvent(e, volumeSlider);
+    playerStore.setVolume(percentage)
+  }
+}
+
+const handleVolumeDragEnd = (e) => {
+  if (!isDraggingVolume.value) return;
+  // 移除事件监听器
+  window.removeEventListener('mousemove', handleVolumeDragging);
+  window.removeEventListener('mouseup', handleVolumeDragEnd);
+
+  const volumeSlider = document.querySelector('.volume-slider');
+  if (volumeSlider) {
+    const percentage = calculateTimeFromEvent(e, volumeSlider);
+    playerStore.setVolume(percentage)
+    // 真正更新音量参数
+    player.value.volume = percentage
+  }
+
+  isDraggingVolume.value = false
+}
+
+
+
+
 
 </script>
 
@@ -444,7 +588,7 @@ watch(() => playerStore.songUrl, (newUrl) => {
   height: 100%;
   background: #808080;
   border-radius: 1.5px;
-  width: 70%;
+  /* width: 70%; */
   transition: width 0.1s ease;
 }
 

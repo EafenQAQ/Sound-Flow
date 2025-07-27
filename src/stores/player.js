@@ -41,7 +41,6 @@ export const usePlayerStore = defineStore('player', () => {
       isPlaying.value = true
     } else {
       informMessage.value = '后面没有歌啦~'
-      
     }
   }
 
@@ -52,6 +51,10 @@ export const usePlayerStore = defineStore('player', () => {
     } else {
       informMessage.value = '前面没有歌啦~'
     }
+  }
+
+  const setVolume = (newVolume) => {
+    volume.value = Math.min(Math.max(0, newVolume), 1)
   }
 
   return {
@@ -71,5 +74,6 @@ export const usePlayerStore = defineStore('player', () => {
     togglePlay,
     nextSong,
     previousSong,
+    setVolume,
   }
 })
