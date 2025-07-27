@@ -116,7 +116,11 @@ const handleTimeUpdate = (event) => {
 
 // 当音频的元数据加载完成后触发
 const handleLoadedMetadata = (event) => {
-  playerStore.duration = event.target.duration
+  playerStore.duration = event.target.duration;
+  // 同步音量设置
+  if (player.value) {
+    player.value.volume = playerStore.volume;
+  }
 }
 
 // 当音频开始播放时触发
@@ -183,7 +187,6 @@ const volumePercent = computed(() => {
 })
 
 // 监听歌曲URL的变化，实现自动播放新歌
-
 watch(() => playerStore.songUrl, (newUrl) => {
   if (!player.value) return;
 
@@ -213,6 +216,13 @@ watch(() => playerStore.songUrl, (newUrl) => {
   }
 });
 
+// 监听音量变化，同步到 audio 元素
+watch(() => playerStore.volume, (newVolume) => {
+  if (player.value) {
+    player.value.volume = newVolume;
+  }
+});
+
 
 // 计算点击或拖动位置对应的时间
 const calculateTimeFromEvent = (event, progressBar) => {
@@ -221,7 +231,18 @@ const calculateTimeFromEvent = (event, progressBar) => {
   const rect = bar.getBoundingClientRect();
 
   // 支持触摸事件和鼠标事件
-  const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+  let clientX;
+  if (event.touches && event.touches.length > 0) {
+    // touchstart 和 touchmove 事件
+    clientX = event.touches[0].clientX;
+  } else if (event.changedTouches && event.changedTouches.length > 0) {
+    // touchend 事件
+    clientX = event.changedTouches[0].clientX;
+  } else {
+    // 鼠标事件
+    clientX = event.clientX;
+  }
+
   const offsetX = clientX - rect.left; // 计算点击/触摸位置相对于进度条左侧的偏移
   const barWidth = bar.clientWidth;
   const percentage = Math.min(Math.max(0, offsetX / barWidth), 1); // 确保百分比在 0-1 之间
@@ -232,6 +253,8 @@ const calculateTimeFromEvent = (event, progressBar) => {
 // 开始拖动
 
 const handleSeekStart = (e) => {
+  e.preventDefault();
+  console.log('进度条拖拽开始', e.type);
   if (!player.value) return;
 
   isSeeking.value = true;
@@ -241,21 +264,19 @@ const handleSeekStart = (e) => {
 
   if (playerStore.duration) {
     const seekTime = percentage * playerStore.duration;
-
     playerStore.currentTime = seekTime;
   }
 
-
   // 添加全局事件监听器（支持鼠标和触摸）
-  window.addEventListener('mousemove', handleSeekMove);
+  window.addEventListener('mousemove', handleSeekMove, { passive: false });
   window.addEventListener('mouseup', handleSeekEnd);
-  window.addEventListener('touchmove', handleSeekMove);
+  window.addEventListener('touchmove', handleSeekMove, { passive: false });
   window.addEventListener('touchend', handleSeekEnd);
-
 }
 
 // 拖动过程
 const handleSeekMove = (e) => {
+  e.preventDefault();
   if (!isSeeking.value) return;
 
   // 在拖动时持续更新UI
@@ -265,10 +286,8 @@ const handleSeekMove = (e) => {
 
     if (playerStore.duration) {
       const seekTime = percentage * playerStore.duration;
-
       playerStore.currentTime = seekTime;
     }
-
   }
 }
 
@@ -286,7 +305,6 @@ const handleSeekEnd = (e) => {
   if (progressBar) {
     const percentage = calculateTimeFromEvent(e, progressBar);
     if (playerStore.duration) {
-
       const newTime = percentage * playerStore.duration;
       playerStore.currentTime = newTime;
       player.value.currentTime = newTime;
@@ -306,6 +324,8 @@ const handleSeekEnd = (e) => {
 // 拖动音量条
 
 const handleVolumeDragStart = (e) => {
+  e.preventDefault();
+  console.log('音量拖拽开始', e.type);
   if (!player.value) return;
 
   isDraggingVolume.value = true;
@@ -314,13 +334,14 @@ const handleVolumeDragStart = (e) => {
   playerStore.setVolume(percentage)
 
   // 添加全局事件监听器（支持鼠标和触摸）
-  window.addEventListener('mousemove', handleVolumeDragging);
+  window.addEventListener('mousemove', handleVolumeDragging, { passive: false });
   window.addEventListener('mouseup', handleVolumeDragEnd);
-  window.addEventListener('touchmove', handleVolumeDragging);
+  window.addEventListener('touchmove', handleVolumeDragging, { passive: false });
   window.addEventListener('touchend', handleVolumeDragEnd);
 }
 
 const handleVolumeDragging = (e) => {
+  e.preventDefault();
   if (!isDraggingVolume.value) return;
 
   const volumeSlider = document.querySelector('.volume-slider');
@@ -332,6 +353,7 @@ const handleVolumeDragging = (e) => {
 
 const handleVolumeDragEnd = (e) => {
   if (!isDraggingVolume.value) return;
+
   // 移除事件监听器（鼠标和触摸）
   window.removeEventListener('mousemove', handleVolumeDragging);
   window.removeEventListener('mouseup', handleVolumeDragEnd);
@@ -341,12 +363,11 @@ const handleVolumeDragEnd = (e) => {
   const volumeSlider = document.querySelector('.volume-slider');
   if (volumeSlider) {
     const percentage = calculateTimeFromEvent(e, volumeSlider);
-    playerStore.setVolume(percentage)
-    // 真正更新音量参数
-    player.value.volume = percentage
+    playerStore.setVolume(percentage);
+    // 音量会通过 watch 自动同步到 audio 元素
   }
 
-  isDraggingVolume.value = false
+  isDraggingVolume.value = false;
 }
 
 
