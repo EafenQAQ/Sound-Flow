@@ -29,7 +29,69 @@ coverage
 
 *.tsbuildinfo
 
-# firebase配置
+# Firebase 配置和敏感信息
 /src/firebase/config.js
-.firebase/hosting.ZGlzdA.cache
-storage.rules
+/src/firebase/config.ts
+firebase-config.js
+firebase-config.ts
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Firebase 部署和缓存
+.firebase/
+.firebaserc.backup
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+ui-debug.log
+storage.rules.backup
+
+# API Keys 和密钥文件
+*.key
+*.pem
+*.p12
+*.pfx
+service-account-key.json
+google-services.json
+GoogleService-Info.plist
+
+# 临时文件和备份
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+.DS_Store?
+Thumbs.db
+
+# 开发工具和配置
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+*.code-workspace
+
+# 包管理器
+package-lock.json.backup
+yarn.lock.backup
+.pnpm-store/
+.yarn/
+.yarnrc.yml
+
+# 测试覆盖率
+coverage/
+.nyc_output/
+*.lcov
+
+# 文档和说明文件（如果不想提交）
+# TODO.md
+# NOTES.md
+# CHANGELOG.md
+
+# 本地开发配置
+.local/
+local.config.js
+dev.config.js
