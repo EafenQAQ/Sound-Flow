@@ -35,6 +35,7 @@ defineProps({
 <style scoped>
 .ListView {
   width: 100%;
+  min-height: calc(100vh - 348px);
 }
 
 .playlists-grid {

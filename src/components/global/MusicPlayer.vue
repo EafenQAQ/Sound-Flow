@@ -385,7 +385,8 @@ const handleVolumeDragEnd = (e) => {
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
   width: 100%;
   height: 100px;
-  position: relative;
+  position: fixed;
+  bottom: 0%;
   z-index: 10;
   display: flex;
   align-items: center;
