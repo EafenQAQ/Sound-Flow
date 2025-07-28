@@ -5,19 +5,26 @@
       <p class="subtitle">发现精彩音乐，分享美好时光</p>
     </div>
 
-    <!-- 加载状态 -->
-    <div v-if="!playlists.length && !error" class="loading-container">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>正在加载歌单...</p>
-      </div>
-    </div>
+
 
     <!-- 歌单列表 -->
-    <div v-else-if="playlists.length" class="playlists-container fade-in-up" style="animation-delay: 0.2s">
-      <ListView :playlists="playlists" />
-    </div>
+    <Suspense>
+      <template #default>
+        <div class="playlists-container fade-in-up" style="animation-delay: 0.2s">
+          <ListView :playlists="playlists" />
+        </div>
+      </template>
 
+      <!-- 加载状态 -->
+      <template #fallback>
+        <div class="loading-container">
+          <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>正在加载歌单...</p>
+          </div>
+        </div>
+      </template>
+    </Suspense>
     <!-- 错误状态 -->
     <div v-if="error" class="error-container fade-in-up">
       <div class="error-content">
@@ -26,14 +33,20 @@
         <button @click="retryLoad" class="retry-btn">重试</button>
       </div>
     </div>
+
   </div>
 </template>
 
 <script setup>
-import ListView from '@/components/ListView.vue';
+import { defineAsyncComponent } from 'vue'
 import getCollection from '@/composables/getCollection';
 
+//设置ListView为异步组件
+const ListView = defineAsyncComponent(() => import('@/components/ListView.vue'))
+
 const { error, documents: playlists } = getCollection('playlists')
+
+
 
 // 重试加载函数
 const retryLoad = () => {
