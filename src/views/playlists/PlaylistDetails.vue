@@ -224,6 +224,7 @@ const handlePlay = (index) => {
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--primary);
+  margin: 0 auto;
 }
 
 .songs-section {
