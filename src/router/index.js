@@ -1,17 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import { projectAuth } from '@/firebase/config'
+import { getCurrentUser } from '@/composables/getUser'
 
-const getCurrentUser = () => {
-  return new Promise((resolve, reject) => {
-    // onAuthStateChanged 会在状态确定后触发回调
-
-    const unsubscribe = projectAuth.onAuthStateChanged((user) => {
-      unsubscribe()
-      resolve(user)
-    }, reject)
-  })
-}
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -70,16 +60,15 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const requireAuth = to.matched.some((record) => record.meta.requireAuth)
 
-  // 3. 使用 await 等待 Firebase 初始化完成
-  const user = await getCurrentUser()
-
-  if (requireAuth && !user) {
-    // 如果路由需要认证但用户未登录，则重定向
-    next({ name: 'login' })
-  } else {
-    // 否则，正常放行
-    next()
+  if (requireAuth) {
+    const user = await getCurrentUser()
+    if (!user) {
+      next({ name: 'login' })
+      return
+    }
   }
+
+  next()
 })
 
 export default router
