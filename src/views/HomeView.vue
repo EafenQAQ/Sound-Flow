@@ -7,24 +7,17 @@
 
 
 
-    <!-- 歌单列表 -->
-    <Suspense>
-      <template #default>
-        <div class="playlists-container fade-in-up" style="animation-delay: 0.2s">
-          <ListView :playlists="playlists" />
-        </div>
-      </template>
+    <div v-if="!playlists.length && !error" class="loading-container">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>正在加载歌单...</p>
+      </div>
+    </div>
 
-      <!-- 加载状态 -->
-      <template #fallback>
-        <div class="loading-container">
-          <div class="loading-spinner">
-            <div class="spinner"></div>
-            <p>正在加载歌单...</p>
-          </div>
-        </div>
-      </template>
-    </Suspense>
+    <!-- 歌单列表 -->
+    <div v-else-if="playlists.length" class="playlists-container fade-in-up" style="animation-delay: 0.2s">
+      <ListView :playlists="playlists" />
+    </div>
     <!-- 错误状态 -->
     <div v-if="error" class="error-container fade-in-up">
       <div class="error-content">
@@ -38,11 +31,10 @@
 </template>
 
 <script setup>
-import { defineAsyncComponent } from 'vue'
+import ListView from '@/components/ListView.vue';
 import getCollection from '@/composables/getCollection';
 
-//设置ListView为异步组件
-const ListView = defineAsyncComponent(() => import('@/components/ListView.vue'))
+
 
 const { error, documents: playlists } = getCollection('playlists')
 
