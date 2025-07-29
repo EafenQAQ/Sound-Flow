@@ -1,14 +1,12 @@
 import { ref, watchEffect } from 'vue'
+import { doc, onSnapshot } from 'firebase/firestore'
 import { projectFirestore } from '@/firebase/config'
 
 const getDocument = (collection, id) => {
   const error = ref(null)
   const document = ref(null)
 
-  const unsubscribe = projectFirestore
-    .collection(collection)
-    .doc(id)
-    .onSnapshot(
+  const unsubscribe = onSnapshot(doc(projectFirestore, collection, id),
       (doc) => {
         if (doc.data()) {
           document.value = { ...doc.data(), id: doc.id }

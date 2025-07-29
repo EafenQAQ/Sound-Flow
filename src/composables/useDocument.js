@@ -1,15 +1,16 @@
 import { ref } from 'vue'
+import { doc, updateDoc } from 'firebase/firestore'
 import { projectFirestore } from '@/firebase/config'
 
 const error = ref(null)
 const isPending = ref(false)
 
 const useDocument = (collection, id) => {
-  const updateDoc = async (newData) => {
+  const updateDocument = async (newData) => {
     try {
       error.value = null
       isPending.value = true
-      await projectFirestore.collection(collection).doc(id).update(newData)
+      await updateDoc(doc(projectFirestore, collection, id), newData)
       console.log('更新成功', newData)
       isPending.value = false
     } catch (err) {
@@ -19,7 +20,7 @@ const useDocument = (collection, id) => {
     }
   }
 
-  return { error, isPending, updateDoc }
+  return { error, isPending, updateDocument }
 }
 
 export default useDocument

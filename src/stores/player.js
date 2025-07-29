@@ -9,7 +9,7 @@ export const usePlayerStore = defineStore('player', () => {
   const currentTime = ref(0)
   const duration = ref(0)
   const volume = ref(0.7) // 0-1之间
-  const isMuted = ref(false)
+
   const informMessage = ref('')
 
   //Getters

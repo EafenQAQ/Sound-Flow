@@ -53,13 +53,13 @@ const handleChange = (e) => {
 }
 
 const { url, filePath, uploadImage } = useStorage()
-const { error, addDoc } = useCollection('playlists')
+const { error, addDocument } = useCollection('playlists')
 
 const handleSubmit = async () => {
   if (cover.value) {
     isPending.value = true
     await uploadImage(cover.value)
-    const res = await addDoc({
+    const res = await addDocument({
       title: title.value,
       description: description.value,
       userId: user.value.uid,

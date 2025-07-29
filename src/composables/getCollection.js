@@ -1,23 +1,24 @@
 import { ref, watchEffect } from 'vue'
+import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore'
 import { projectFirestore } from '@/firebase/config'
-import { getUser } from '@/composables/getUser'
 
-const getCollection = (collection, query) => {
+const getCollection = (_collection, _query) => {
   const error = ref(null)
   const documents = ref([])
-  const { user } = getUser()
 
-  let collectionRef = projectFirestore.collection(collection).orderBy('createdAt', 'desc')
+  let collectionRef = query(collection(projectFirestore, _collection), orderBy('createdAt', 'desc'))
 
   // 如果有查询参数，则引入查询参数
-  if (query) {
-    collectionRef = projectFirestore
-      .collection(collection)
-      .where('userId', '==', query)
-      .orderBy('createdAt', 'desc')
+  if (_query) {
+    collectionRef = query(
+      collection(projectFirestore, _collection),
+      where('userId', '==', _query),
+      orderBy('createdAt', 'desc'),
+    )
   }
 
-  const unsubscribe = collectionRef.onSnapshot(
+  const unsubscribe = onSnapshot(
+    collectionRef,
     (snap) => {
       let results = []
       snap.docs.forEach((doc) => {

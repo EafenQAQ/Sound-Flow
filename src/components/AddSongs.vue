@@ -40,8 +40,8 @@ const artist = ref(null)
 const fileError = ref(null)
 const song = ref(null)
 
-const { error, isPending, updateDoc } = useDocument('playlists', props.document.id)
-const { filePath, url, error: uploadSongError, uploadSong } = useStorage()
+const { error, isPending, updateDocument } = useDocument('playlists', props.document.id)
+const { filePath, url, uploadSong } = useStorage()
 
 const handleChange = (e) => {
   console.log('songFile:', e.target.files[0])
@@ -67,7 +67,7 @@ const handleSubmit = async () => {
     filePath: filePath.value,
     songUrl: url.value
   }
-  await updateDoc({
+  await updateDocument({
     songs: [...props.document.songs, newSong]
   })
 
@@ -76,7 +76,7 @@ const handleSubmit = async () => {
     showForm.value = false
     title.value = null
     artist.value = null
-    console.log('updateDoc方法，修改的数据是：', props.document.songs)
+    console.log('updateDocument方法，修改的数据是：', props.document.songs)
   }
 
 }

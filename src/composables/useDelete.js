@@ -1,4 +1,6 @@
 import { ref } from 'vue'
+import { doc, deleteDoc, writeBatch, getDoc, updateDoc } from 'firebase/firestore'
+import { ref as storageRef, deleteObject } from 'firebase/storage'
 import { projectFirestore, projectStorage } from '@/firebase/config'
 
 const useDelete = () => {
@@ -6,11 +8,11 @@ const useDelete = () => {
   const isPending = ref(false)
 
   // 删除单个文档
-  const deleteDoc = async (collection, id) => {
+  const deleteDocument = async (collection, id) => {
     try {
       error.value = null
       isPending.value = true
-      await projectFirestore.collection(collection).doc(id).delete()
+      await deleteDoc(doc(projectFirestore, collection, id))
       console.log('文档删除成功:', id)
       isPending.value = false
       return true
@@ -28,10 +30,10 @@ const useDelete = () => {
       error.value = null
       isPending.value = true
 
-      const batch = projectFirestore.batch()
+      const batch = writeBatch(projectFirestore)
 
       docIds.forEach((id) => {
-        const docRef = projectFirestore.collection(collection).doc(id)
+        const docRef = doc(projectFirestore, collection, id)
         batch.delete(docRef)
       })
 
@@ -51,8 +53,8 @@ const useDelete = () => {
   const deleteStorageFile = async (filePath) => {
     try {
       if (filePath) {
-        const fileRef = projectStorage.ref(filePath)
-        await fileRef.delete()
+        const fileRef = storageRef(projectStorage, filePath)
+        await deleteObject(fileRef)
         console.log('存储文件删除成功:', filePath)
       }
     } catch (err) {
@@ -143,7 +145,7 @@ const useDelete = () => {
       }
 
       // 获取当前歌单数据
-      const playlistDoc = await projectFirestore.collection('playlists').doc(playlistId).get()
+      const playlistDoc = await getDoc(doc(projectFirestore, 'playlists', playlistId))
       if (!playlistDoc.exists) {
         throw new Error('歌单不存在')
       }
@@ -152,7 +154,7 @@ const useDelete = () => {
       const updatedSongs = playlistData.songs.filter((s) => s.id !== song.id)
 
       // 更新歌单文档
-      await projectFirestore.collection('playlists').doc(playlistId).update({
+      await updateDoc(doc(projectFirestore, 'playlists', playlistId), {
         songs: updatedSongs,
       })
 
@@ -181,7 +183,7 @@ const useDelete = () => {
       await Promise.all(deleteFilePromises)
 
       // 获取当前歌单数据
-      const playlistDoc = await projectFirestore.collection('playlists').doc(playlistId).get()
+      const playlistDoc = await getDoc(doc(projectFirestore, 'playlists', playlistId))
       if (!playlistDoc.exists) {
         throw new Error('歌单不存在')
       }
@@ -191,7 +193,7 @@ const useDelete = () => {
       const updatedSongs = playlistData.songs.filter((song) => !songIdsToDelete.includes(song.id))
 
       // 更新歌单文档
-      await projectFirestore.collection('playlists').doc(playlistId).update({
+      await updateDoc(doc(projectFirestore, 'playlists', playlistId), {
         songs: updatedSongs,
       })
 
@@ -209,7 +211,7 @@ const useDelete = () => {
   return {
     error,
     isPending,
-    deleteDoc,
+    deleteDocument,
     batchDeleteDocs,
     deleteStorageFile,
     deletePlaylist,
