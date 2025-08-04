@@ -3,7 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="/src/assets/logo/logo.webp" />
-    <!-- 为了减少LCP时间，与firebaseStorage进行preconnect -->
+    <!-- 预加载logo -->
+    <link rel="preload" href="/src/assets/logo/logo.webp" as="image" type="image/webp" />
+    <!-- 预连接 Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- 异步加载字体 -->
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript
+      ><link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
+    /></noscript>
     <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SoundFlow</title>

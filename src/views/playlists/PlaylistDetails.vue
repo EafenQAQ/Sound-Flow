@@ -6,7 +6,7 @@
       <div class="content-wrapper">
         <div class="profile fade-in-up">
           <div class="cover-container">
-            <img :src="document.optimizedCoverUrl || document.coverUrl" alt="图片加载失败" loading="lazy">
+            <OptimizedImage :playlist="document" :pixel-size="'_800x800.webp'" />
           </div>
           <div class="info-container">
             <h2 class="title">{{ document.title }}</h2>
@@ -49,6 +49,7 @@
 
 <script setup>
 import AddSongs from '@/components/AddSongs.vue';
+import OptimizedImage from '@/components/OptimizedImage.vue';
 import getDocument from '@/composables/getDocument';
 import { getUser } from '@/composables/getUser';
 import { usePlayerStore } from '@/stores/player';

@@ -2,8 +2,8 @@
   <div v-if="playerStore.currentSong" id="MusicPlayer">
     <!-- 专辑封面 -->
     <div class="album-cover">
-      <img :src="playerStore.currentDoc.optimizedCoverUrl || playerStore.coverUrl || defaultCover" alt="专辑封面"
-        class="cover-image" loading="lazy">
+      <OptimizedImage v-if="playerStore.currentDoc" :lazy-load="true" :image-class="'cover-image'"
+        :playlist="playerStore.currentDoc" :pixel-size="'_200x200.webp'" />
     </div>
 
     <!-- 歌曲信息 -->
@@ -86,6 +86,7 @@ import { usePlayerStore } from '@/stores/player';
 import { ref, computed, watch, nextTick, onUnmounted } from 'vue';
 import useInform from '@/composables/useInform';
 import logo from '@/assets/logo/logo.webp'
+import OptimizedImage from '../OptimizedImage.vue';
 
 const player = ref(null) // 播放器本身
 const defaultCover = ref(logo)
@@ -408,12 +409,7 @@ const handleVolumeDragEnd = (e) => {
   min-width: 70px;
 }
 
-.cover-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
+
 
 .cover-image:hover {
   transform: scale(1.05);

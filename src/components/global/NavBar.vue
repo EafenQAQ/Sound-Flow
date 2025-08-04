@@ -1,7 +1,7 @@
 <template>
   <div id="NavBar" class="nav-container">
     <div class="logo">
-      <img src="@/assets/logo/logo.webp" width="100" alt="logo加载失败">
+      <img src="@/assets/logo/logo.webp" width="100" height="100" alt="logo加载失败">
       <RouterLink :to="{ name: 'home' }">
         <h1>Sound FLow</h1>
       </RouterLink>

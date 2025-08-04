@@ -6,7 +6,7 @@
         <RouterLink :to="{ name: 'playlistDetails', params: { id: playlist.id } }">
           <div class="single">
             <div class="thumbnail">
-              <img :src="playlist.optimizedCoverUrl || playlist.coverUrl" alt="封面加载失败">
+              <OptimizedImage :playlist="playlist" :pixel-size="'_600x600.webp'" />
               <div class="overlay">
                 <span class="play-icon">▶</span>
               </div>
@@ -24,12 +24,16 @@
 </template>
 
 <script setup>
+import OptimizedImage from './OptimizedImage.vue';
+
 defineProps({
   playlists: {
     type: Array,
     required: true,
   },
 })
+
+
 </script>
 
 <style scoped>
@@ -86,16 +90,7 @@ defineProps({
   overflow: hidden;
 }
 
-.thumbnail img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
 
-.single:hover .thumbnail img {
-  transform: scale(1.05);
-}
 
 .overlay {
   position: absolute;
@@ -184,7 +179,18 @@ defineProps({
   pointer-events: none;
 }
 
-.playlist-card.loading .thumbnail img {
+.thumbnail :deep(.playlist-image) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.single:hover .thumbnail :deep(.playlist-image) {
+  transform: scale(1.05);
+}
+
+.playlist-card.loading .thumbnail :deep(.playlist-image) {
   filter: blur(2px);
 }
 </style>
