@@ -6,7 +6,7 @@
         <RouterLink :to="{ name: 'playlistDetails', params: { id: playlist.id } }">
           <div class="single">
             <div class="thumbnail">
-              <img :src="playlist.coverUrl" alt="封面加载失败">
+              <img :src="playlist.optimizedCoverUrl || playlist.coverUrl" alt="封面加载失败">
               <div class="overlay">
                 <span class="play-icon">▶</span>
               </div>

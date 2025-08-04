@@ -1,0 +1,36 @@
+{
+  "env": {
+    "browser": true,
+    "es6": true,
+    "node": true,
+    "commonjs": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2018
+  },
+  "extends": [
+    "eslint:recommended",
+    "google"
+  ],
+  "rules": {
+    "no-restricted-globals": ["error", "name", "length"],
+    "prefer-arrow-callback": "error",
+    "quotes": ["error", "double", {"allowTemplateLiterals": true}]
+  },
+  "overrides": [
+    {
+      "files": ["**/*.spec.*"],
+      "env": {
+        "mocha": true
+      },
+      "rules": {}
+    }
+  ],
+  "globals": {
+    "module": true,
+    "require": true,
+    "exports": true,
+    "__dirname": true,
+    "__filename": true
+  }
+}
