@@ -6,7 +6,7 @@
       <div class="content-wrapper">
         <div class="profile fade-in-up">
           <div class="cover-container">
-            <img :src="document.coverUrl" alt="图片加载失败" loading="lazy">
+            <img :src="document.optimizedCoverUrl || document.coverUrl" alt="图片加载失败" loading="lazy">
           </div>
           <div class="info-container">
             <h2 class="title">{{ document.title }}</h2>

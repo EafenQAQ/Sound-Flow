@@ -68,7 +68,7 @@
           <!-- 歌单内容 -->
           <div class="playlist-content">
             <div class="thumbnail">
-              <img :src="playlist.coverUrl" :alt="playlist.title" loading="lazy">
+              <img :src="playlist.optimizedCoverUrl || playlist.coverUrl" :alt="playlist.title" loading="lazy">
               <div class="overlay">
                 <RouterLink :to="{ name: 'playlistDetails', params: { id: playlist.id } }" class="view-link">
                   <span class="view-icon">{{ playlist.title }}</span>
@@ -150,7 +150,7 @@
                   <input type="checkbox" :checked="isAllSongsSelected" @change.stop="toggleSelectAllSongs">
                   <span class="checkmark"></span>
                   <span class="checkbox-label">全选歌曲 ({{ selectedSongs.length }}/{{ currentPlaylist.songs.length
-                  }})</span>
+                    }})</span>
                 </div>
               </div>
 

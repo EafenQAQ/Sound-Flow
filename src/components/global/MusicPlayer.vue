@@ -2,7 +2,8 @@
   <div v-if="playerStore.currentSong" id="MusicPlayer">
     <!-- 专辑封面 -->
     <div class="album-cover">
-      <img :src="playerStore.coverUrl || defaultCover" alt="专辑封面" class="cover-image" loading="lazy">
+      <img :src="playerStore.currentDoc.optimizedCoverUrl || playerStore.coverUrl || defaultCover" alt="专辑封面"
+        class="cover-image" loading="lazy">
     </div>
 
     <!-- 歌曲信息 -->
