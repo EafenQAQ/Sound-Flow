@@ -6,7 +6,7 @@
         <RouterLink :to="{ name: 'playlistDetails', params: { id: playlist.id } }">
           <div class="single">
             <div class="thumbnail">
-              <OptimizedImage :playlist="playlist" :pixel-size="'_600x600.webp'" />
+              <OptimizedImage :playlist="playlist" :pixel-size="'_800x800.webp'" />
               <div class="overlay">
                 <span class="play-icon">▶</span>
               </div>
