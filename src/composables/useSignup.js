@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { projectAuth } from '@/firebase/config'
 
 const error = ref(null)
 const isPending = ref(false)
@@ -8,11 +9,7 @@ const signup = async (email, password, displayName) => {
   isPending.value = true
 
   try {
-    // 动态导入认证模块
     const { createUserWithEmailAndPassword, updateProfile } = await import('firebase/auth')
-    const { getProjectAuth } = await import('@/firebase/config')
-
-    const projectAuth = await getProjectAuth()
     const res = await createUserWithEmailAndPassword(projectAuth, email, password)
     if (!res.user) {
       throw new Error('注册失败')

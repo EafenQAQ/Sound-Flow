@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { projectAuth } from '@/firebase/config'
 
 const error = ref()
 const isPending = ref(false)
@@ -8,11 +9,7 @@ const login = async (email, password) => {
   isPending.value = true
 
   try {
-    // 动态导入认证模块
     const { signInWithEmailAndPassword } = await import('firebase/auth')
-    const { getProjectAuth } = await import('@/firebase/config')
-
-    const projectAuth = await getProjectAuth()
     const res = await signInWithEmailAndPassword(projectAuth, email, password)
     if (!res.user) {
       throw new Error('登录失败')

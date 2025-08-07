@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { projectFirestore, projectStorage } from '@/firebase/config'
 
 const useDelete = () => {
   const error = ref(null)
@@ -10,11 +11,7 @@ const useDelete = () => {
       error.value = null
       isPending.value = true
 
-      // 动态导入 Firestore 模块
       const { doc, deleteDoc } = await import('firebase/firestore')
-      const { getProjectFirestore } = await import('@/firebase/config')
-
-      const projectFirestore = await getProjectFirestore()
       await deleteDoc(doc(projectFirestore, collection, id))
       console.log('文档删除成功:', id)
       isPending.value = false
@@ -33,11 +30,7 @@ const useDelete = () => {
       error.value = null
       isPending.value = true
 
-      // 动态导入 Firestore 模块
       const { doc, writeBatch } = await import('firebase/firestore')
-      const { getProjectFirestore } = await import('@/firebase/config')
-
-      const projectFirestore = await getProjectFirestore()
       const batch = writeBatch(projectFirestore)
 
       docIds.forEach((id) => {
@@ -61,11 +54,7 @@ const useDelete = () => {
   const deleteStorageFile = async (filePath) => {
     try {
       if (filePath) {
-        // 动态导入 Storage 模块
         const { ref: storageRef, deleteObject } = await import('firebase/storage')
-        const { getProjectStorage } = await import('@/firebase/config')
-
-        const projectStorage = await getProjectStorage()
         const fileRef = storageRef(projectStorage, filePath)
         await deleteObject(fileRef)
         console.log('存储文件删除成功:', filePath)
@@ -97,7 +86,7 @@ const useDelete = () => {
       }
 
       // 再删除文档
-      const success = await deleteDoc('playlists', playlist.id)
+      const success = await deleteDocument('playlists', playlist.id)
       return success
     } catch (err) {
       console.error('删除歌单失败:', err.message)
@@ -159,9 +148,6 @@ const useDelete = () => {
 
       // 获取当前歌单数据
       const { doc, getDoc, updateDoc } = await import('firebase/firestore')
-      const { getProjectFirestore } = await import('@/firebase/config')
-
-      const projectFirestore = await getProjectFirestore()
       const playlistDoc = await getDoc(doc(projectFirestore, 'playlists', playlistId))
       if (!playlistDoc.exists) {
         throw new Error('歌单不存在')
@@ -201,9 +187,6 @@ const useDelete = () => {
 
       // 获取当前歌单数据
       const { doc, getDoc, updateDoc } = await import('firebase/firestore')
-      const { getProjectFirestore } = await import('@/firebase/config')
-
-      const projectFirestore = await getProjectFirestore()
       const playlistDoc = await getDoc(doc(projectFirestore, 'playlists', playlistId))
       if (!playlistDoc.exists) {
         throw new Error('歌单不存在')

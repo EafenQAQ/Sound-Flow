@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { getUser } from './getUser'
-
+import { projectStorage } from '@/firebase/config'
 const { user } = getUser()
 
 const useStorage = () => {
@@ -10,10 +10,9 @@ const useStorage = () => {
 
   const uploadImage = async (file) => {
     // 动态导入存储相关模块
-    const { getProjectStorage } = await import('@/firebase/config')
+
     const { ref: storageRef, uploadBytes, getDownloadURL } = await import('firebase/storage')
 
-    const projectStorage = await getProjectStorage()
     filePath.value = `cover/${user.value.uid}/${file.name}`
     const storageReference = storageRef(projectStorage, filePath.value)
 
@@ -26,10 +25,7 @@ const useStorage = () => {
   }
 
   const uploadSong = async (song, playlistId) => {
-    const { getProjectStorage } = await import('@/firebase/config')
     const { ref: storageRef, uploadBytes, getDownloadURL } = await import('firebase/storage')
-
-    const projectStorage = await getProjectStorage()
 
     filePath.value = `songs/${user.value.uid}/${playlistId}/${song.name}`
     const storageReference = storageRef(projectStorage, filePath.value)
