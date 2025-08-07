@@ -84,6 +84,7 @@ watch(document, (newDoc) => {
 // 播放歌曲
 const handlePlay = (index) => {
   playerStore.playSong(index)
+
 }
 
 </script>

@@ -85,11 +85,11 @@
 import { usePlayerStore } from '@/stores/player';
 import { ref, computed, watch, nextTick, onUnmounted } from 'vue';
 import useInform from '@/composables/useInform';
-import logo from '@/assets/logo/logo.webp'
+
 import OptimizedImage from '../OptimizedImage.vue';
 
 const player = ref(null) // 播放器本身
-const defaultCover = ref(logo)
+
 
 const isSeeking = ref(false) // 是否正在拖动进度条
 const wasPlayingBeforeSeek = ref(false) // 拖动前是否在播放
@@ -373,7 +373,17 @@ const handleVolumeDragEnd = (e) => {
 }
 
 
-
+// 监听isPlaying状态，同步播放器控件行为
+watch(() => playerStore.isPlaying, (newIsPlaying) => {
+  if (!player.value) return;
+  if (newIsPlaying) {
+    player.value.play().catch((err) => {
+      console.error('播放失败', err)
+    })
+  } else {
+    player.value.pause()
+  }
+})
 
 
 </script>
