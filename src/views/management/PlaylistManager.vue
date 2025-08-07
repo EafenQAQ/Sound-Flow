@@ -150,7 +150,7 @@
                   <input type="checkbox" :checked="isAllSongsSelected" @change.stop="toggleSelectAllSongs">
                   <span class="checkmark"></span>
                   <span class="checkbox-label">全选歌曲 ({{ selectedSongs.length }}/{{ currentPlaylist.songs.length
-                    }})</span>
+                  }})</span>
                 </div>
               </div>
 
@@ -424,7 +424,7 @@ watch([userPlaylists, error], () => {
     // 这样可以避免在数据还在加载时就显示空状态
     setTimeout(() => {
       isInitialLoading.value = false
-    }, 1000)
+    }, 2000)
   }
 }, { immediate: true })
 
