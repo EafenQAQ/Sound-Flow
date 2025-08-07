@@ -33,10 +33,11 @@
 <script setup>
 import ListView from '@/components/ListView.vue';
 import getCollection from '@/composables/getCollection';
+import { onMounted } from 'vue';
 
 
 
-const { error, documents: playlists } = getCollection('playlists')
+const { error, documents: playlists, startFirebaseListener } = getCollection('playlists')
 
 
 
@@ -44,6 +45,11 @@ const { error, documents: playlists } = getCollection('playlists')
 const retryLoad = () => {
   window.location.reload()
 }
+
+onMounted(async () => {
+  await startFirebaseListener()
+}
+)
 </script>
 
 <style scoped>

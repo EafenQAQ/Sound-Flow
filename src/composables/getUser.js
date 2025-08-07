@@ -1,7 +1,6 @@
 import { ref, computed } from 'vue'
-import { projectAuth } from '@/firebase/config'
 
-const user = ref(projectAuth.currentUser)
+const user = ref(null)
 
 // 缓存用户登录状态
 
@@ -16,8 +15,11 @@ const authState = ref({
 let authUnsubscribe = null
 
 // 初始化认证监听器（只执行一次）
-const initAuthListener = () => {
+const initAuthListener = async () => {
   if (authUnsubscribe) return
+
+  // 动态导入firebase auth
+  const { projectAuth } = await import('@/firebase/config')
 
   authUnsubscribe = projectAuth.onAuthStateChanged((_user) => {
     authState.value = {
@@ -29,6 +31,7 @@ const initAuthListener = () => {
     console.log('认证状态更新:', _user?.uid || '未登录')
     user.value = _user
   })
+  user.value = projectAuth.currentUser
 }
 
 // 获取当前认证状态
@@ -55,9 +58,8 @@ const getUser = () => {
   return {
     user,
     isLoading: computed(() => authState.value.isLoading),
-    isInitialized: computed(() => authState.value.isInitialized)
+    isInitialized: computed(() => authState.value.isInitialized),
   }
 }
 
 export { getUser, initAuthListener, getCurrentUser }
-
