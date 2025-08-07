@@ -1,18 +1,12 @@
 import { ref, watchEffect } from 'vue'
+import { doc, onSnapshot } from 'firebase/firestore'
+import { projectFirestore } from '@/firebase/config'
 
 const getDocument = (collection, id) => {
   const error = ref(null)
   const document = ref(null)
 
-  const startFirebaseListener = async () => {
-    // 动态导入
-    const { doc, onSnapshot } = await import('firebase/firestore')
-    const { getProjectFirestore } = await import('@/firebase/config')
-
-    const projectFirestore = await getProjectFirestore()
-
-    const unsubscribe = onSnapshot(
-      doc(projectFirestore, collection, id),
+  const unsubscribe = onSnapshot(doc(projectFirestore, collection, id),
       (doc) => {
         if (doc.data()) {
           document.value = { ...doc.data(), id: doc.id }
@@ -29,16 +23,12 @@ const getDocument = (collection, id) => {
       },
     )
 
-    // 断开snapshot链接
-    watchEffect((onInvalidate) => {
-      onInvalidate(() => {
-        unsubscribe()
-      })
+  // 断开snapshot链接
+  watchEffect((onInvalidate) => {
+    onInvalidate(() => {
+      unsubscribe()
     })
-  }
-
-  // 启动监听器
-  startFirebaseListener()
+  })
 
   return { error, document }
 }
