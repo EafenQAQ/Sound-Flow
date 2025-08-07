@@ -24,11 +24,7 @@ export default defineConfig({
               return 'vendor-vue'
             }
 
-            // firebase自己一桌
-            if (id.includes('firebase')) {
-              return 'vendor-firebase'
-            }
-            // 其他
+            // 其他第三方库
             return 'vendor'
           }
         },

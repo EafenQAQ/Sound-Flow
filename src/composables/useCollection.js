@@ -1,11 +1,13 @@
 import { ref } from 'vue'
-import { collection, addDoc } from 'firebase/firestore'
 import { projectFirestore } from '@/firebase/config'
 
 const useCollection = (_collection) => {
   const error = ref(null)
 
   const addDocument = async (doc) => {
+    // 动态导入fireStore
+    const { collection, addDoc } = await import('firebase/firestore')
+
     try {
       error.value = null
       const res = await addDoc(collection(projectFirestore, _collection), doc)

@@ -1,6 +1,5 @@
 import { projectAuth } from '@/firebase/config'
 import { ref } from 'vue'
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
 
 const error = ref(null)
 const isPending = ref(false)
@@ -9,6 +8,7 @@ const signup = async (email, password, displayName) => {
   error.value = null
   isPending.value = true
   try {
+    const { createUserWithEmailAndPassword, updateProfile } = await import('firebase/auth')
     const res = await createUserWithEmailAndPassword(projectAuth, email, password)
     console.log('注册：返回的res是', res.user)
     if (!res.user) {

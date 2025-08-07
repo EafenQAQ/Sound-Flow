@@ -1,5 +1,4 @@
 import { ref } from 'vue'
-import { signInWithEmailAndPassword } from 'firebase/auth'
 import { projectAuth } from '@/firebase/config'
 
 const error = ref()
@@ -9,6 +8,7 @@ const login = async (email, password) => {
   error.value = null
   isPending.value = true
   try {
+    const { signInWithEmailAndPassword } = await import('firebase/auth')
     const res = await signInWithEmailAndPassword(projectAuth, email, password)
     console.log('登录：返回的res是', res.user)
     if (!res.user) {

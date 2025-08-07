@@ -1,6 +1,4 @@
 import { ref } from 'vue'
-import { doc, deleteDoc, writeBatch, getDoc, updateDoc } from 'firebase/firestore'
-import { ref as storageRef, deleteObject } from 'firebase/storage'
 import { projectFirestore, projectStorage } from '@/firebase/config'
 
 const useDelete = () => {
@@ -12,6 +10,8 @@ const useDelete = () => {
     try {
       error.value = null
       isPending.value = true
+
+      const { doc, deleteDoc } = await import('firebase/firestore')
       await deleteDoc(doc(projectFirestore, collection, id))
       console.log('文档删除成功:', id)
       isPending.value = false
@@ -30,6 +30,7 @@ const useDelete = () => {
       error.value = null
       isPending.value = true
 
+      const { doc, writeBatch } = await import('firebase/firestore')
       const batch = writeBatch(projectFirestore)
 
       docIds.forEach((id) => {
@@ -53,6 +54,7 @@ const useDelete = () => {
   const deleteStorageFile = async (filePath) => {
     try {
       if (filePath) {
+        const { ref: storageRef, deleteObject } = await import('firebase/storage')
         const fileRef = storageRef(projectStorage, filePath)
         await deleteObject(fileRef)
         console.log('存储文件删除成功:', filePath)
@@ -84,7 +86,7 @@ const useDelete = () => {
       }
 
       // 再删除文档
-      const success = await deleteDoc('playlists', playlist.id)
+      const success = await deleteDocument('playlists', playlist.id)
       return success
     } catch (err) {
       console.error('删除歌单失败:', err.message)
@@ -145,6 +147,7 @@ const useDelete = () => {
       }
 
       // 获取当前歌单数据
+      const { doc, getDoc, updateDoc } = await import('firebase/firestore')
       const playlistDoc = await getDoc(doc(projectFirestore, 'playlists', playlistId))
       if (!playlistDoc.exists) {
         throw new Error('歌单不存在')
@@ -183,6 +186,7 @@ const useDelete = () => {
       await Promise.all(deleteFilePromises)
 
       // 获取当前歌单数据
+      const { doc, getDoc, updateDoc } = await import('firebase/firestore')
       const playlistDoc = await getDoc(doc(projectFirestore, 'playlists', playlistId))
       if (!playlistDoc.exists) {
         throw new Error('歌单不存在')

@@ -1,5 +1,4 @@
 import { ref } from 'vue'
-import { signOut } from 'firebase/auth'
 import { projectAuth } from '@/firebase/config'
 
 const error = ref(null)
@@ -7,6 +6,7 @@ const error = ref(null)
 const logout = async () => {
   error.value = null
   try {
+    const { signOut } = await import('firebase/auth')
     await signOut(projectAuth)
     error.value = null
   } catch (err) {
