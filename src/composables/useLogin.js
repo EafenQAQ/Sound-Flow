@@ -1,6 +1,4 @@
 import { ref } from 'vue'
-import { signInWithEmailAndPassword } from 'firebase/auth'
-import { projectAuth } from '@/firebase/config'
 
 const error = ref()
 const isPending = ref(false)
@@ -8,16 +6,19 @@ const isPending = ref(false)
 const login = async (email, password) => {
   error.value = null
   isPending.value = true
+
   try {
+    // 动态导入认证模块
+    const { signInWithEmailAndPassword } = await import('firebase/auth')
+    const { projectAuth } = await import('@/firebase/config')
+
     const res = await signInWithEmailAndPassword(projectAuth, email, password)
-    console.log('登录：返回的res是', res.user)
     if (!res.user) {
       throw new Error('登录失败')
     }
     error.value = null
     isPending.value = false
   } catch (err) {
-    console.error(err.message)
     error.value = '邮箱或密码错误'
     isPending.value = false
   }
@@ -28,3 +29,4 @@ const useLogin = () => {
 }
 
 export { useLogin }
+

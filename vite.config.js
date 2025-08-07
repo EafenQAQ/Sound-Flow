@@ -16,19 +16,28 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        // 在这里添加对chunks的配置
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            // 将vue相关的库分到一起
+            // 将 Firebase 核心和各服务进一步细分
+            if (id.includes('firebase/app') || id.includes('@firebase/app')) {
+              return 'firebase-core'
+            }
+            if (id.includes('firebase/auth') || id.includes('@firebase/auth')) {
+              return 'firebase-auth'
+            }
+            if (id.includes('firebase/firestore') || id.includes('@firebase/firestore')) {
+              return 'firebase-firestore'
+            }
+            if (id.includes('firebase/storage') || id.includes('@firebase/storage')) {
+              return 'firebase-storage'
+            }
+
+            // Vue 相关
             if (id.includes('vue') || id.includes('pinia') || id.includes('vue-router')) {
               return 'vendor-vue'
             }
 
-            // firebase自己一桌
-            if (id.includes('firebase')) {
-              return 'vendor-firebase'
-            }
-            // 其他
+            // 其他第三方库
             return 'vendor'
           }
         },

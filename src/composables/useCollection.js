@@ -1,24 +1,24 @@
 import { ref } from 'vue'
-import { collection, addDoc } from 'firebase/firestore'
-import { projectFirestore } from '@/firebase/config'
 
 const useCollection = (_collection) => {
   const error = ref(null)
 
   const addDocument = async (doc) => {
     try {
+      // 动态导入 Firestore 模块
+      const { collection, addDoc } = await import('firebase/firestore')
+      const { projectFirestore } = await import('@/firebase/config')
+
       error.value = null
       const res = await addDoc(collection(projectFirestore, _collection), doc)
-      if (!error.value) {
-        console.log('发送data成功:', doc)
-      }
       return res
     } catch (err) {
-      console.error(err.message)
       error.value = '无法发送消息'
     }
   }
+
   return { error, addDocument }
 }
 
 export default useCollection
+
