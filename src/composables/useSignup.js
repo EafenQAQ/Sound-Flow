@@ -10,8 +10,9 @@ const signup = async (email, password, displayName) => {
   try {
     // 动态导入认证模块
     const { createUserWithEmailAndPassword, updateProfile } = await import('firebase/auth')
-    const { projectAuth } = await import('@/firebase/config')
+    const { getProjectAuth } = await import('@/firebase/config')
 
+    const projectAuth = await getProjectAuth()
     const res = await createUserWithEmailAndPassword(projectAuth, email, password)
     if (!res.user) {
       throw new Error('注册失败')
@@ -30,4 +31,3 @@ const useSignup = () => {
 }
 
 export { useSignup }
-

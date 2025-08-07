@@ -1,6 +1,4 @@
 import { ref } from 'vue'
-import { doc, updateDoc } from 'firebase/firestore'
-import { projectFirestore } from '@/firebase/config'
 
 const error = ref(null)
 const isPending = ref(false)
@@ -10,6 +8,12 @@ const useDocument = (collection, id) => {
     try {
       error.value = null
       isPending.value = true
+
+      // 动态导入 Firestore 模块
+      const { doc, updateDoc } = await import('firebase/firestore')
+      const { getProjectFirestore } = await import('@/firebase/config')
+
+      const projectFirestore = await getProjectFirestore()
       await updateDoc(doc(projectFirestore, collection, id), newData)
       console.log('更新成功', newData)
       isPending.value = false

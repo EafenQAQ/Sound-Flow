@@ -19,9 +19,12 @@ const initAuthListener = async () => {
   if (authUnsubscribe) return
 
   // 动态导入firebase auth
-  const { projectAuth } = await import('@/firebase/config')
+  const { getProjectAuth } = await import('@/firebase/config')
+  const { onAuthStateChanged } = await import('firebase/auth')
 
-  authUnsubscribe = projectAuth.onAuthStateChanged((_user) => {
+  const projectAuth = await getProjectAuth()
+
+  authUnsubscribe = onAuthStateChanged(projectAuth, (_user) => {
     authState.value = {
       user: _user,
       isLoading: false,

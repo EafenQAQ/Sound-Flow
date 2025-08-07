@@ -7,8 +7,9 @@ const useCollection = (_collection) => {
     try {
       // 动态导入 Firestore 模块
       const { collection, addDoc } = await import('firebase/firestore')
-      const { projectFirestore } = await import('@/firebase/config')
+      const { getProjectFirestore } = await import('@/firebase/config')
 
+      const projectFirestore = await getProjectFirestore()
       error.value = null
       const res = await addDoc(collection(projectFirestore, _collection), doc)
       return res
@@ -21,4 +22,3 @@ const useCollection = (_collection) => {
 }
 
 export default useCollection
-

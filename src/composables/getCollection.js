@@ -3,11 +3,14 @@ import { ref, watchEffect } from 'vue'
 const getCollection = (_collection, _query) => {
   const error = ref(null)
   const documents = ref([])
+  const unsubscribe = ref(null)
 
   const startFirebaseListener = async () => {
     // 动态导入
     const { collection, query, where, orderBy, onSnapshot } = await import('firebase/firestore')
-    const { projectFirestore } = await import('@/firebase/config')
+    const { getProjectFirestore } = await import('@/firebase/config')
+
+    const projectFirestore = await getProjectFirestore()
 
     let collectionRef = query(
       collection(projectFirestore, _collection),
@@ -23,9 +26,11 @@ const getCollection = (_collection, _query) => {
       )
     }
 
-    const unsubscribe = onSnapshot(
+    unsubscribe.value = onSnapshot(
       collectionRef,
       (snap) => {
+        console.log('触发firebase快照') // 用来观察snap触发次数
+
         let results = []
         snap.docs.forEach((doc) => {
           doc.data().createdAt && results.push({ ...doc.data(), id: doc.id })
@@ -39,14 +44,17 @@ const getCollection = (_collection, _query) => {
         documents.value = []
       },
     )
-
-    // 断开snapshot链接
-    watchEffect((onInvalidate) => {
-      onInvalidate(() => {
-        unsubscribe()
-      })
-    })
   }
+  // 断开snapshot链接
+  watchEffect((onInvalidate) => {
+    onInvalidate(() => {
+      console.log('销毁firebase快照')
+      if (unsubscribe.value) {
+        unsubscribe.value()
+      }
+    })
+  })
+
   return { error, documents, startFirebaseListener }
 }
 

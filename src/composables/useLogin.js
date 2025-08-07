@@ -10,8 +10,9 @@ const login = async (email, password) => {
   try {
     // 动态导入认证模块
     const { signInWithEmailAndPassword } = await import('firebase/auth')
-    const { projectAuth } = await import('@/firebase/config')
+    const { getProjectAuth } = await import('@/firebase/config')
 
+    const projectAuth = await getProjectAuth()
     const res = await signInWithEmailAndPassword(projectAuth, email, password)
     if (!res.user) {
       throw new Error('登录失败')
@@ -29,4 +30,3 @@ const useLogin = () => {
 }
 
 export { useLogin }
-

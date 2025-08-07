@@ -203,7 +203,7 @@ import useDelete from '@/composables/useDelete'
 const { user } = getUser()
 
 // 获取用户的歌单
-const { error, documents: userPlaylists, load: loadPlaylists } = getCollection('playlists', user.value?.uid)
+const { error, documents: userPlaylists, startFirebaseListener } = getCollection('playlists', user.value?.uid)
 
 // 删除功能
 const {
@@ -244,7 +244,7 @@ const canManagePlaylist = (playlist) => {
 const reloadData = async () => {
   try {
     isReloading.value = true
-    await loadPlaylists()
+    await startFirebaseListener()
   } finally {
     isReloading.value = false
   }
@@ -429,10 +429,12 @@ watch([userPlaylists, error], () => {
 }, { immediate: true })
 
 // 组件挂载时的处理
-onMounted(() => {
+onMounted(async () => {
   if (!user.value) {
     showMessage('请先登录', 'error')
   }
+  await startFirebaseListener()
+
 })
 </script>
 

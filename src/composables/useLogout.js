@@ -1,12 +1,15 @@
 import { ref } from 'vue'
-import { signOut } from 'firebase/auth'
-import { projectAuth } from '@/firebase/config'
 
 const error = ref(null)
 
 const logout = async () => {
   error.value = null
   try {
+    // 动态导入认证模块
+    const { signOut } = await import('firebase/auth')
+    const { getProjectAuth } = await import('@/firebase/config')
+
+    const projectAuth = await getProjectAuth()
     await signOut(projectAuth)
     error.value = null
   } catch (err) {
