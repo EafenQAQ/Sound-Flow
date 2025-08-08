@@ -1,9 +1,11 @@
 <template>
-  <img :src="optimizedImageUrl || playlist.coverUrl" :class="imageClass" :loading="lazyLoad ? 'lazy' : 'eager'">
+  <img :src="optimizedImageUrl || playlist.coverUrl" :class="imageClass" :loading="lazyLoad ? 'lazy' : 'eager'"
+    crossorigin="anonymous">
+
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 
 const props = defineProps({
   playlist: {
@@ -19,6 +21,10 @@ const props = defineProps({
     default: 'playlist-image'
   },
   lazyLoad: {
+    type: Boolean,
+    default: false
+  },
+  preload: {
     type: Boolean,
     default: false
   }
@@ -45,9 +51,37 @@ const fileName = computed(() => {
 // 构造优化图片URL
 
 const optimizedImageUrl = computed(() => {
+  if (!props.playlist.userId || !fileName.value || !props.pixelSize) {
+    return null;
+  }
+
   return `https://storage.googleapis.com/sound-flow-e1a34.firebasestorage.app/cover/${props.playlist.userId}/optimizedImages/${fileName.value}${props.pixelSize}`
 }
 )
+
+// 计算好URL后，给图片动态地添加preload属性
+
+watch(optimizedImageUrl, (newUrl) => {
+  if (newUrl || props.preload) {
+    // 检查是否已有一个preload属性
+    if (document.querySelector(`link[rel="preload"][href="${newUrl}"]`)) {
+      return
+    }
+
+    // 构造link元素
+    const link = document.createElement('link')
+
+    link.rel = 'preload'
+    link.as = 'image'
+    link.href = newUrl
+    link.crossOrigin = 'anonymous'
+
+    // 添加到head
+    document.head.appendChild(link)
+  }
+}, { immediate: true }
+)
+
 </script>
 
 <style scoped>
