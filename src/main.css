@@ -90,15 +90,6 @@ button:disabled {
 }
 
 /* forms */
-form {
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 1px 2px 3px rgba(50, 50, 50, 0.05);
-  border: 1px solid var(--secondary);
-  background: white;
-}
 
 input,
 textarea {
@@ -381,4 +372,3 @@ input[type='file']:hover {
   will-change: transform, opacity;
   pointer-events: none;
 }
-

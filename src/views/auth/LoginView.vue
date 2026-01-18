@@ -1,37 +1,45 @@
 <template>
   <div class="login-container container">
-    <form @submit.prevent="handleSubmit" class="fade-in-up">
-      <h2>登录</h2>
-      <div class="form-group">
-        <label>邮箱</label>
-        <input type="email" placeholder="输入邮箱" v-model="email" required>
+    <div class="auth-container">
+      <div class="logo-section">
+        <img src="@/assets/logo/logo.webp" alt="Sound-Flow Logo" class="logo" />
+        <div class="welcome-text">欢迎!</div>
       </div>
-      <div class="form-group">
-        <label>密码</label>
-        <input type="password" placeholder="输入密码" v-model="password" required>
+      <div class="form-section">
+        <form @submit.prevent="handleSubmit" class="fade-in-up">
+          <h2>登录</h2>
+          <div class="form-group">
+            <label>邮箱</label>
+            <input type="email" placeholder="输入邮箱" v-model="email" required />
+          </div>
+          <div class="form-group">
+            <label>密码</label>
+            <input type="password" placeholder="输入密码" v-model="password" required />
+          </div>
+
+          <Transition name="fade" mode="out-in">
+            <div class="error" v-if="error">{{ error }}</div>
+          </Transition>
+
+          <Transition name="fade" mode="out-in">
+            <div class="success" v-if="success">{{ success }}</div>
+          </Transition>
+
+          <button v-if="!isPending" type="submit" class="submit-btn">登录</button>
+          <button v-if="isPending" disabled class="submit-btn loading">
+            <span class="loading-spinner"></span>
+            登录中...
+          </button>
+        </form>
       </div>
-
-      <Transition name="fade" mode="out-in">
-        <div class="error" v-if="error">{{ error }}</div>
-      </Transition>
-
-      <Transition name="fade" mode="out-in">
-        <div class="success" v-if="success">{{ success }}</div>
-      </Transition>
-
-      <button v-if="!isPending" type="submit" class="submit-btn">登录</button>
-      <button v-if="isPending" disabled class="submit-btn loading">
-        <span class="loading-spinner"></span>
-        登录中...
-      </button>
-    </form>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { useLogin } from '@/composables/useLogin';
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useLogin } from '@/composables/useLogin'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const email = ref(null)
 const password = ref(null)
@@ -47,7 +55,6 @@ const handleSubmit = async () => {
     router.push({ name: 'home' })
   }
 }
-
 </script>
 
 <style scoped>
@@ -55,8 +62,67 @@ const handleSubmit = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  padding: 2rem 0;
+  padding-top: 10rem;
+}
+
+.auth-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  max-width: 1000px;
+  width: 100%;
+}
+
+.logo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--secondary);
+  padding: 2rem;
+  gap: 1.5rem;
+}
+
+.logo {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.welcome-text {
+  font-size: 3rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease-out 0.3s forwards;
+  text-align: center;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-section {
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 form {
@@ -170,18 +236,83 @@ h2 {
   border: 1px solid rgba(34, 197, 94, 0.2);
 }
 
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .auth-container {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .logo-section {
+    padding: 2rem 1.5rem;
+    min-height: 200px;
+  }
+
+  .logo {
+    width: 150px;
+    height: 150px;
+  }
+
+  .welcome-text {
+    font-size: 2.5rem;
+  }
+
+  .form-section {
+    padding: 2rem 1.5rem;
+  }
+
+  h2 {
+    display: none;
+  }
+
+  .form-group label {
+    display: none;
+  }
+}
+
 /* 移动端优化 */
 @media (max-width: 640px) {
   .login-container {
     padding: 1rem;
   }
 
+  .auth-container {
+    background-color: #fafafa;
+    overflow: hidden;
+    max-width: 1000px;
+    width: 100%;
+    box-shadow: 0 0 0 0;
+  }
+
+  .logo-section {
+    padding: 1.5rem 1rem;
+    min-height: 150px;
+    background-color: #fafafa;
+  }
+
+  .logo {
+    width: 120px;
+    height: 120px;
+  }
+
+  .welcome-text {
+    font-size: 2rem;
+  }
+
+  .form-section {
+    padding: 1.5rem 1rem;
+  }
+
   form {
-    padding: 1.5rem;
+    padding: 0;
   }
 
   h2 {
-    font-size: 1.75rem;
+    display: none;
+  }
+
+  .form-group label {
+    display: none;
   }
 }
 </style>

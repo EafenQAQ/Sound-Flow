@@ -18,4 +18,15 @@ import NavBar from './components/global/NavBar.vue'
 import MusicPlayer from './components/global/MusicPlayer.vue'
 </script>
 
-<style scoped></style>
+<style scoped>
+.content {
+  min-height: calc(100vh - 148px);
+}
+
+@media (max-width: 640px) {
+  .content {
+    min-height: calc(100vh - 92px);
+  }
+}
+</style>
+s
