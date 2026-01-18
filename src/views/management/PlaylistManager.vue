@@ -23,13 +23,13 @@
 
     <!-- 歌单列表 -->
     <div v-else-if="userPlaylists.length" class="playlists-section fade-in-up" style="animation-delay: 0.2s"
-      :class="{ 'reloading': isReloading }">
+      :class="{ reloading: isReloading }">
       <!-- 批量操作工具栏 -->
       <div class="toolbar">
         <div class="selection-info">
           <div class="select-all-container">
             <div class="select-all-checkbox" @click="toggleSelectAll">
-              <input type="checkbox" :checked="isAllSelected" @change.stop="toggleSelectAll">
+              <input type="checkbox" :checked="isAllSelected" @change.stop="toggleSelectAll" />
               <span class="checkmark"></span>
               <span class="checkbox-label">全选 ({{ selectedPlaylists.length }}/{{ userPlaylists.length }})</span>
             </div>
@@ -60,7 +60,7 @@
           <!-- 选择框 -->
           <div class="card-checkbox">
             <label class="checkbox-container">
-              <input type="checkbox" :value="playlist.id" v-model="selectedPlaylists">
+              <input type="checkbox" :value="playlist.id" v-model="selectedPlaylists" />
               <span class="checkmark"></span>
             </label>
           </div>
@@ -68,7 +68,7 @@
           <!-- 歌单内容 -->
           <div class="playlist-content">
             <div class="thumbnail">
-              <img :src="playlist.optimizedCoverUrl || playlist.coverUrl" :alt="playlist.title" loading="lazy">
+              <img :src="playlist.optimizedCoverUrl || playlist.coverUrl" :alt="playlist.title" loading="lazy" />
               <div class="overlay">
                 <RouterLink :to="{ name: 'playlistDetails', params: { id: playlist.id } }" class="view-link">
                   <span class="view-icon">{{ playlist.title }}</span>
@@ -87,12 +87,8 @@
 
             <!-- 歌单操作按钮 -->
             <div class="playlist-actions">
-              <button @click="openSongManager(playlist)" class="manage-songs-btn">
-                <span class="icon">🎵</span>
-                管理歌曲
-              </button>
+              <button @click="openSongManager(playlist)" class="manage-songs-btn">管理歌曲</button>
               <button @click="deleteSinglePlaylist(playlist)" class="delete-btn" :disabled="deleteLoading">
-                <span class="icon">🗑️</span>
                 删除
               </button>
             </div>
@@ -107,9 +103,7 @@
         <span class="empty-icon">📝</span>
         <h3>还没有创建歌单</h3>
         <p>创建你的第一个歌单，开始音乐之旅吧！</p>
-        <RouterLink :to="{ name: 'createPlaylist' }" class="create-btn">
-          创建歌单
-        </RouterLink>
+        <RouterLink :to="{ name: 'createPlaylist' }" class="create-btn"> 创建歌单 </RouterLink>
       </div>
     </div>
 
@@ -147,10 +141,10 @@
             <div class="songs-toolbar">
               <div class="select-all-container">
                 <div class="select-all-checkbox" @click="toggleSelectAllSongs">
-                  <input type="checkbox" :checked="isAllSongsSelected" @change.stop="toggleSelectAllSongs">
+                  <input type="checkbox" :checked="isAllSongsSelected" @change.stop="toggleSelectAllSongs" />
                   <span class="checkmark"></span>
                   <span class="checkbox-label">全选歌曲 ({{ selectedSongs.length }}/{{ currentPlaylist.songs.length
-                  }})</span>
+                    }})</span>
                 </div>
               </div>
 
@@ -164,7 +158,7 @@
             <div class="songs-grid">
               <div v-for="song in currentPlaylist.songs" :key="song.id" class="song-item">
                 <label class="checkbox-container">
-                  <input type="checkbox" :value="song.id" v-model="selectedSongs">
+                  <input type="checkbox" :value="song.id" v-model="selectedSongs" />
                   <span class="checkmark"></span>
                 </label>
 
@@ -203,7 +197,11 @@ import useDelete from '@/composables/useDelete'
 const { user } = getUser()
 
 // 获取用户的歌单
-const { error, documents: userPlaylists, load: loadPlaylists } = getCollection('playlists', user.value?.uid)
+const {
+  error,
+  documents: userPlaylists,
+  load: loadPlaylists,
+} = getCollection('playlists', user.value?.uid)
 
 // 删除功能
 const {
@@ -212,7 +210,7 @@ const {
   deletePlaylist,
   batchDeletePlaylists,
   deleteSong: deleteSongWithStorage,
-  batchDeleteSongs: batchDeleteSongsWithStorage
+  batchDeleteSongs: batchDeleteSongsWithStorage,
 } = useDelete()
 
 // 组件状态
@@ -227,12 +225,16 @@ const isInitialLoading = ref(true)
 
 // 计算属性
 const isAllSelected = computed(() => {
-  return userPlaylists.value.length > 0 && selectedPlaylists.value.length === userPlaylists.value.length
+  return (
+    userPlaylists.value.length > 0 && selectedPlaylists.value.length === userPlaylists.value.length
+  )
 })
 
 const isAllSongsSelected = computed(() => {
-  return currentPlaylist.value?.songs?.length > 0 &&
+  return (
+    currentPlaylist.value?.songs?.length > 0 &&
     selectedSongs.value.length === currentPlaylist.value.songs.length
+  )
 })
 
 // 权限检查函数
@@ -256,8 +258,8 @@ const toggleSelectAll = () => {
     selectedPlaylists.value = []
   } else {
     selectedPlaylists.value = userPlaylists.value
-      .filter(playlist => canManagePlaylist(playlist))
-      .map(playlist => playlist.id)
+      .filter((playlist) => canManagePlaylist(playlist))
+      .map((playlist) => playlist.id)
   }
 }
 
@@ -266,7 +268,7 @@ const toggleSelectAllSongs = () => {
   if (isAllSongsSelected.value) {
     selectedSongs.value = []
   } else {
-    selectedSongs.value = currentPlaylist.value.songs.map(song => song.id)
+    selectedSongs.value = currentPlaylist.value.songs.map((song) => song.id)
   }
 }
 
@@ -282,7 +284,7 @@ const deleteSinglePlaylist = async (playlist) => {
     if (success) {
       showMessage('歌单删除成功')
       // 从选中列表中移除
-      selectedPlaylists.value = selectedPlaylists.value.filter(id => id !== playlist.id)
+      selectedPlaylists.value = selectedPlaylists.value.filter((id) => id !== playlist.id)
       // 重新加载数据以显示最新结果
       await reloadData()
     } else {
@@ -293,8 +295,8 @@ const deleteSinglePlaylist = async (playlist) => {
 
 // 批量删除歌单
 const confirmBatchDelete = async () => {
-  const playlistsToDelete = userPlaylists.value.filter(playlist =>
-    selectedPlaylists.value.includes(playlist.id) && canManagePlaylist(playlist)
+  const playlistsToDelete = userPlaylists.value.filter(
+    (playlist) => selectedPlaylists.value.includes(playlist.id) && canManagePlaylist(playlist),
   )
 
   if (playlistsToDelete.length === 0) {
@@ -347,13 +349,13 @@ const deleteSingleSong = async (song) => {
       showMessage('歌曲删除成功')
 
       // 从选中列表中移除
-      selectedSongs.value = selectedSongs.value.filter(id => id !== song.id)
+      selectedSongs.value = selectedSongs.value.filter((id) => id !== song.id)
 
       // 重新加载歌单数据以显示最新结果
       await reloadData()
 
       // 更新当前歌单的引用
-      const updatedPlaylist = userPlaylists.value.find(p => p.id === currentPlaylist.value.id)
+      const updatedPlaylist = userPlaylists.value.find((p) => p.id === currentPlaylist.value.id)
       if (updatedPlaylist) {
         currentPlaylist.value = updatedPlaylist
       }
@@ -374,8 +376,8 @@ const batchDeleteSongs = async () => {
   if (songsToDeleteCount === 0) return
 
   // 获取要删除的歌曲对象
-  const songsToDelete = currentPlaylist.value.songs.filter(song =>
-    selectedSongs.value.includes(song.id)
+  const songsToDelete = currentPlaylist.value.songs.filter((song) =>
+    selectedSongs.value.includes(song.id),
   )
 
   if (confirm(`确定要删除选中的 ${songsToDeleteCount} 首歌曲吗？此操作将同时删除音频文件。`)) {
@@ -389,7 +391,7 @@ const batchDeleteSongs = async () => {
       await reloadData()
 
       // 更新当前歌单的引用
-      const updatedPlaylist = userPlaylists.value.find(p => p.id === currentPlaylist.value.id)
+      const updatedPlaylist = userPlaylists.value.find((p) => p.id === currentPlaylist.value.id)
       if (updatedPlaylist) {
         currentPlaylist.value = updatedPlaylist
       }
@@ -415,18 +417,22 @@ const showMessage = (message, type = 'success') => {
 }
 
 // 监听数据加载状态
-watch([userPlaylists, error], () => {
-  // 当数据加载完成（有数据或有错误）时，设置初始加载完成
-  if (userPlaylists.value.length > 0 || error.value) {
-    isInitialLoading.value = false
-  } else {
-    // 如果没有数据也没有错误，延迟一点时间再设置加载完成
-    // 这样可以避免在数据还在加载时就显示空状态
-    setTimeout(() => {
+watch(
+  [userPlaylists, error],
+  () => {
+    // 当数据加载完成（有数据或有错误）时，设置初始加载完成
+    if (userPlaylists.value.length > 0 || error.value) {
       isInitialLoading.value = false
-    }, 2000)
-  }
-}, { immediate: true })
+    } else {
+      // 如果没有数据也没有错误，延迟一点时间再设置加载完成
+      // 这样可以避免在数据还在加载时就显示空状态
+      setTimeout(() => {
+        isInitialLoading.value = false
+      }, 2000)
+    }
+  },
+  { immediate: true },
+)
 
 // 组件挂载时的处理
 onMounted(() => {
@@ -814,7 +820,7 @@ onMounted(() => {
 }
 
 .checkmark:after {
-  content: "";
+  content: '';
   position: absolute;
   display: none;
 }
