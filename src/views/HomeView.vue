@@ -38,8 +38,6 @@ import getCollection from '@/composables/getCollection';
 
 const { error, documents: playlists } = getCollection('playlists')
 
-
-
 // 重试加载函数
 const retryLoad = () => {
   window.location.reload()
