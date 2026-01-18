@@ -1,7 +1,7 @@
 <template>
   <div id="NavBar" class="nav-container">
     <div class="logo">
-      <img src="@/assets/logo/logo.webp" width="100" height="100" alt="logo加载失败">
+      <img src="@/assets/logo/logo.webp" width="100" height="100" alt="logo加载失败" />
       <RouterLink :to="{ name: 'home' }">
         <h1>Sound FLow</h1>
       </RouterLink>
@@ -9,9 +9,9 @@
 
     <!-- 移动端汉堡菜单按钮 -->
     <button class="mobile-menu-btn" @click="toggleMobileMenu">
-      <span class="hamburger-line" :class="{ 'active': isMobileMenuOpen }"></span>
-      <span class="hamburger-line" :class="{ 'active': isMobileMenuOpen }"></span>
-      <span class="hamburger-line" :class="{ 'active': isMobileMenuOpen }"></span>
+      <span class="hamburger-line" :class="{ active: isMobileMenuOpen }"></span>
+      <span class="hamburger-line" :class="{ active: isMobileMenuOpen }"></span>
+      <span class="hamburger-line" :class="{ active: isMobileMenuOpen }"></span>
     </button>
 
     <!-- 桌面端导航菜单 -->
@@ -43,10 +43,10 @@
 </template>
 
 <script setup>
-import { getUser } from '@/composables/getUser';
-import { useLogout } from '@/composables/useLogout';
-import { ref } from 'vue';
-import { RouterLink, useRouter } from 'vue-router';
+import { getUser } from '@/composables/getUser'
+import { useLogout } from '@/composables/useLogout'
+import { ref } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 
 const { error, logout } = useLogout()
 const success = ref(null)
@@ -77,7 +77,6 @@ const handleLogout = async () => {
     }, 2000)
   }
 }
-
 </script>
 
 <style scoped>
@@ -157,6 +156,7 @@ const handleLogout = async () => {
 @media (max-width: 767px) {
   .logo img {
     width: 60px;
+    height: 60px;
   }
 
   .logo h1 {
