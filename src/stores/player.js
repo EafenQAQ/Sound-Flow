@@ -22,7 +22,6 @@ export const usePlayerStore = defineStore('player', () => {
   const initPlaylist = (doc) => {
     currentDoc.value = doc
     currentSongIndex.value = 0
-    console.log('初始化歌单:', doc?.title)
   }
 
   const playSong = (songIndex) => {

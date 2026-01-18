@@ -8,20 +8,14 @@
         <component :is="Component" :key="route.path" />
       </Transition>
     </RouterView>
-
-
   </div>
-  <MusicPlayer v-if="user" />
+  <MusicPlayer />
 </template>
 
 <script setup>
-import { RouterView } from 'vue-router';
-import NavBar from './components/global/NavBar.vue';
-import MusicPlayer from './components/global/MusicPlayer.vue';
-import { getUser } from '@/composables/getUser';
-
-const { user } = getUser()
-
+import { RouterView } from 'vue-router'
+import NavBar from './components/global/NavBar.vue'
+import MusicPlayer from './components/global/MusicPlayer.vue'
 </script>
 
 <style scoped></style>

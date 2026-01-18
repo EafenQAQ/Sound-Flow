@@ -138,7 +138,6 @@ const handleAudioPause = () => {
 // (可选，但推荐) 当歌曲播放结束时触发
 const handleSongEnd = () => {
   // 这里可以添加自动播放下一首的逻辑
-  console.log("歌曲播放结束");
   playerStore.isPlaying = false;
   playerStore.nextSong();
 }
@@ -147,7 +146,6 @@ const handleSongEnd = () => {
 
 const handlePlay = async () => {
   if (!player.value || !playerStore.songUrl) {
-    console.error('播放器实例或歌曲URL为空！')
     return
   }
 
@@ -158,8 +156,7 @@ const handlePlay = async () => {
     } else {
       player.value.pause()
     }
-  } catch (err) {
-    console.error('播放/暂停操作失败', err)
+  } catch {
     // 如果播放失败，确保状态正确
     playerStore.isPlaying = false;
   }
@@ -203,9 +200,7 @@ watch(() => playerStore.songUrl, (newUrl) => {
       const playOnCanPlay = async () => {
         try {
           await player.value.play();
-          console.log('新歌曲已自动播放');
-        } catch (error) {
-          console.error("新歌曲自动播放失败:", error);
+        } catch {
           // 如果因浏览器策略等原因播放失败，同步状态
           playerStore.isPlaying = false;
         }
@@ -256,7 +251,6 @@ const calculateTimeFromEvent = (event, progressBar) => {
 
 const handleSeekStart = (e) => {
   e.preventDefault();
-  console.log('进度条拖拽开始', e.type);
   if (!player.value) return;
 
   isSeeking.value = true;
@@ -317,8 +311,8 @@ const handleSeekEnd = (e) => {
 
   // 如果拖动前是播放状态，恢复播放
   if (wasPlayingBeforeSeek.value) {
-    player.value.play().catch((err) => {
-      console.error('恢复播放失败', err)
+    player.value.play().catch(() => {
+      // 恢复播放失败
     })
   }
 }
@@ -327,7 +321,6 @@ const handleSeekEnd = (e) => {
 
 const handleVolumeDragStart = (e) => {
   e.preventDefault();
-  console.log('音量拖拽开始', e.type);
   if (!player.value) return;
 
   isDraggingVolume.value = true;
@@ -377,8 +370,8 @@ const handleVolumeDragEnd = (e) => {
 watch(() => playerStore.isPlaying, (newIsPlaying) => {
   if (!player.value) return;
   if (newIsPlaying) {
-    player.value.play().catch((err) => {
-      console.error('播放失败', err)
+    player.value.play().catch(() => {
+      // 播放失败
     })
   } else {
     player.value.pause()

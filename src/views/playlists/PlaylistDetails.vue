@@ -39,7 +39,7 @@
                 </div>
               </div>
             </div>
-            <AddSongs v-if="user.uid === document.userId" :document="document" class="add-songs-component" />
+            <AddSongs v-if="user?.uid === document.userId" :document="document" class="add-songs-component" />
           </div>
         </div>
       </div>
@@ -48,13 +48,13 @@
 </template>
 
 <script setup>
-import AddSongs from '@/components/AddSongs.vue';
-import OptimizedImage from '@/components/OptimizedImage.vue';
-import getDocument from '@/composables/getDocument';
-import { getUser } from '@/composables/getUser';
-import { usePlayerStore } from '@/stores/player';
-import { watch } from 'vue';
-import { useRouter } from 'vue-router';
+import AddSongs from '@/components/AddSongs.vue'
+import OptimizedImage from '@/components/OptimizedImage.vue'
+import getDocument from '@/composables/getDocument'
+import { getUser } from '@/composables/getUser'
+import { usePlayerStore } from '@/stores/player'
+import { watch } from 'vue'
+import { useRouter } from 'vue-router'
 const props = defineProps({
   id: {
     type: String,
@@ -66,7 +66,6 @@ const { user } = getUser()
 const { error, document } = getDocument('playlists', props.id)
 const router = useRouter()
 
-
 // 跳转到用户歌单页面
 const gotoUserPlaylist = () => {
   router.push({ name: 'userPlaylist', params: { userId: document.value.userId } })
@@ -75,18 +74,18 @@ const gotoUserPlaylist = () => {
 // 将歌单数据注入Pinia
 
 const playerStore = usePlayerStore()
-watch(document, (newDoc) => {
-  playerStore.initPlaylist(newDoc)
-}, { immediate: true }
+watch(
+  document,
+  (newDoc) => {
+    playerStore.initPlaylist(newDoc)
+  },
+  { immediate: true },
 )
-
 
 // 播放歌曲
 const handlePlay = (index) => {
   playerStore.playSong(index)
-
 }
-
 </script>
 
 <style scoped>
@@ -154,7 +153,9 @@ const handlePlay = (index) => {
   height: 250px;
   object-fit: cover;
   border-radius: 12px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 @media (min-width: 640px) {
