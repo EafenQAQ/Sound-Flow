@@ -2,9 +2,10 @@ rules_version='2'
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 允许已认证用户读写 playlists 集合
+    // 允许公开读取歌单，但只有已认证用户才能写入
     match /playlists/{document} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
     
     // 其他文档的默认规则（临时规则，建议后续完善）
@@ -13,4 +14,5 @@ service cloud.firestore {
     }
   }
 }
+
 
