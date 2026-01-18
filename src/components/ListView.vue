@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-import OptimizedImage from './OptimizedImage.vue';
+import OptimizedImage from './OptimizedImage.vue'
 
 defineProps({
   playlists: {
@@ -32,8 +32,6 @@ defineProps({
     required: true,
   },
 })
-
-
 </script>
 
 <style scoped>
@@ -44,15 +42,9 @@ defineProps({
 
 .playlists-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
   padding: 1rem 0;
-}
-
-@media (min-width: 640px) {
-  .playlists-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 @media (min-width: 1024px) {
@@ -72,7 +64,9 @@ defineProps({
   background: white;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
   cursor: pointer;
   height: 100%;
@@ -80,7 +74,9 @@ defineProps({
 
 .single:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .thumbnail {
@@ -89,8 +85,6 @@ defineProps({
   aspect-ratio: 1;
   overflow: hidden;
 }
-
-
 
 .overlay {
   position: absolute;
