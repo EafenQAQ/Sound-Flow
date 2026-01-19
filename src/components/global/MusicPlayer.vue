@@ -1,5 +1,6 @@
 <template>
-  <div v-if="playerStore.currentSong" id="MusicPlayer">
+  <div v-if="playerStore.currentSong" id="MusicPlayer" :class="{ 'fullscreen-mode': playerStore.isFullscreen }"
+    @click="handlePlayerClick">
     <!-- 专辑封面 -->
     <div class="album-cover">
       <OptimizedImage v-if="playerStore.currentDoc" :lazy-load="true" :image-class="'cover-image'"
@@ -17,13 +18,13 @@
       <!-- 播放按钮组 -->
       <div class="control-buttons">
         <!-- 上一首 -->
-        <button @click="playerStore.previousSong" class="control-btn prev-btn">
+        <button @click.stop="playerStore.previousSong" class="control-btn prev-btn">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
           </svg>
         </button>
         <!-- 播放/暂停 -->
-        <button @click="handlePlay" class="control-btn play-btn">
+        <button @click.stop="handlePlay" class="control-btn play-btn">
           <svg v-if="!playerStore.isPlaying" viewBox="0 0 24 24" fill="currentColor" class="play-icon">
             <path d="M8 5v14l11-7z" />
           </svg>
@@ -32,7 +33,7 @@
           </svg>
         </button>
         <!-- 下一首 -->
-        <button @click="playerStore.nextSong" class="control-btn next-btn">
+        <button @click.stop="playerStore.nextSong" class="control-btn next-btn">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
           </svg>
@@ -40,7 +41,7 @@
       </div>
 
       <!-- 进度条区域 -->
-      <div class="progress-area">
+      <div @click.stop class="progress-area">
         <span class="time current-time">{{ formattedCurrentTime }}</span>
         <div @mousedown.prevent="handleSeekStart" @touchstart.prevent="handleSeekStart" class="progress-bar">
           <div class="progress-track">
@@ -53,7 +54,7 @@
     </div>
 
     <!-- 音量控制 -->
-    <div class="volume-control">
+    <div class="volume-control" @click.stop>
       <button class="volume-btn">
         <svg viewBox="0 0 24 24" fill="currentColor" class="volume-icon">
           <path
@@ -78,23 +79,25 @@
         </div>
       </Transition>
     </Teleport>
+
+    <!-- 全屏播放器组件 -->
+    <FullscreenPlayer />
   </div>
 </template>
 
 <script setup>
-import { usePlayerStore } from '@/stores/player';
-import { ref, computed, watch, nextTick, onUnmounted } from 'vue';
-import useInform from '@/composables/useInform';
+import { usePlayerStore } from '@/stores/player'
+import { ref, computed, watch, nextTick, onUnmounted } from 'vue'
+import useInform from '@/composables/useInform'
 
-import OptimizedImage from '../OptimizedImage.vue';
+import OptimizedImage from '../OptimizedImage.vue'
+import FullscreenPlayer from './FullscreenPlayer.vue'
 
 const player = ref(null) // 播放器本身
-
 
 const isSeeking = ref(false) // 是否正在拖动进度条
 const wasPlayingBeforeSeek = ref(false) // 拖动前是否在播放
 const isDraggingVolume = ref(false) // 是否正在拖动音量条
-
 
 const playerStore = usePlayerStore()
 
@@ -118,31 +121,29 @@ const handleTimeUpdate = (event) => {
 
 // 当音频的元数据加载完成后触发
 const handleLoadedMetadata = (event) => {
-  playerStore.duration = event.target.duration;
+  playerStore.duration = event.target.duration
   // 同步音量设置
   if (player.value) {
-    player.value.volume = playerStore.volume;
+    player.value.volume = playerStore.volume
   }
 }
 
 // 当音频开始播放时触发
 const handleAudioPlay = () => {
-  playerStore.isPlaying = true;
+  playerStore.isPlaying = true
 }
 
 // 当音频暂停时触发
 const handleAudioPause = () => {
-  playerStore.isPlaying = false;
+  playerStore.isPlaying = false
 }
 
 // (可选，但推荐) 当歌曲播放结束时触发
 const handleSongEnd = () => {
   // 这里可以添加自动播放下一首的逻辑
-  playerStore.isPlaying = false;
-  playerStore.nextSong();
+  playerStore.isPlaying = false
+  playerStore.nextSong()
 }
-
-
 
 const handlePlay = async () => {
   if (!player.value || !playerStore.songUrl) {
@@ -158,10 +159,14 @@ const handlePlay = async () => {
     }
   } catch {
     // 如果播放失败，确保状态正确
-    playerStore.isPlaying = false;
+    playerStore.isPlaying = false
   }
 }
 
+// 处理播放器点击事件（唤起全屏）
+const handlePlayerClick = () => {
+  playerStore.toggleFullscreen()
+}
 
 // 格式化时间显示
 const formatTime = (seconds) => {
@@ -174,7 +179,6 @@ const formatTime = (seconds) => {
 const formattedCurrentTime = computed(() => formatTime(playerStore.currentTime))
 const formattedDuration = computed(() => formatTime(playerStore.duration))
 
-
 // 动态更新进度条UI
 const progressPercent = computed(() => {
   return playerStore.duration ? (playerStore.currentTime / playerStore.duration) * 100 : 0
@@ -186,103 +190,106 @@ const volumePercent = computed(() => {
 })
 
 // 监听歌曲URL的变化，实现自动播放新歌
-watch(() => playerStore.songUrl, (newUrl) => {
-  if (!player.value) return;
+watch(
+  () => playerStore.songUrl,
+  (newUrl) => {
+    if (!player.value) return
 
-  // 这个 watch 只处理一个核心场景：
-  // 当歌曲 URL 变化，并且 Store 的意图是“播放”时，就自动播放新歌。
-  if (newUrl && playerStore.isPlaying) {
-
-    // 使用 nextTick 确保 DOM 更新（<audio> 的 src 已改变）
-    nextTick(() => {
-
-      // 定义一个一次性的 canplay 事件处理器
-      const playOnCanPlay = async () => {
-        try {
-          await player.value.play();
-        } catch {
-          // 如果因浏览器策略等原因播放失败，同步状态
-          playerStore.isPlaying = false;
+    // 这个 watch 只处理一个核心场景：
+    // 当歌曲 URL 变化，并且 Store 的意图是“播放”时，就自动播放新歌。
+    if (newUrl && playerStore.isPlaying) {
+      // 使用 nextTick 确保 DOM 更新（<audio> 的 src 已改变）
+      nextTick(() => {
+        // 定义一个一次性的 canplay 事件处理器
+        const playOnCanPlay = async () => {
+          try {
+            await player.value.play()
+          } catch {
+            // 如果因浏览器策略等原因播放失败，同步状态
+            playerStore.isPlaying = false
+          }
         }
-      };
 
-      // 为 canplay 事件添加这个一次性监听器
-      // { once: true } 是关键，确保它只执行一次然后自动移除，避免内存泄漏和重复执行
-      player.value.addEventListener('canplay', playOnCanPlay, { once: true });
-    });
-  }
-});
+        // 为 canplay 事件添加这个一次性监听器
+        // { once: true } 是关键，确保它只执行一次然后自动移除，避免内存泄漏和重复执行
+        player.value.addEventListener('canplay', playOnCanPlay, { once: true })
+      })
+    }
+  },
+)
 
 // 监听音量变化，同步到 audio 元素
-watch(() => playerStore.volume, (newVolume) => {
-  if (player.value) {
-    player.value.volume = newVolume;
-  }
-});
-
+watch(
+  () => playerStore.volume,
+  (newVolume) => {
+    if (player.value) {
+      player.value.volume = newVolume
+    }
+  },
+)
 
 // 计算点击或拖动位置对应的时间
 const calculateTimeFromEvent = (event, progressBar) => {
-  const bar = progressBar || event.currentTarget;
+  const bar = progressBar || event.currentTarget
   // getBoundingClientRect() 方法返回元素的大小及其相对于视口的位置。
-  const rect = bar.getBoundingClientRect();
+  const rect = bar.getBoundingClientRect()
 
   // 支持触摸事件和鼠标事件
-  let clientX;
+  let clientX
   if (event.touches && event.touches.length > 0) {
     // touchstart 和 touchmove 事件
-    clientX = event.touches[0].clientX;
+    clientX = event.touches[0].clientX
   } else if (event.changedTouches && event.changedTouches.length > 0) {
     // touchend 事件
-    clientX = event.changedTouches[0].clientX;
+    clientX = event.changedTouches[0].clientX
   } else {
     // 鼠标事件
-    clientX = event.clientX;
+    clientX = event.clientX
   }
 
-  const offsetX = clientX - rect.left; // 计算点击/触摸位置相对于进度条左侧的偏移
-  const barWidth = bar.clientWidth;
-  const percentage = Math.min(Math.max(0, offsetX / barWidth), 1); // 确保百分比在 0-1 之间
+  const offsetX = clientX - rect.left // 计算点击/触摸位置相对于进度条左侧的偏移
+  const barWidth = bar.clientWidth
+  const percentage = Math.min(Math.max(0, offsetX / barWidth), 1) // 确保百分比在 0-1 之间
 
   return percentage
-};
+}
 
 // 开始拖动
 
 const handleSeekStart = (e) => {
-  e.preventDefault();
-  if (!player.value) return;
+  e.preventDefault()
+  if (!player.value) return
 
-  isSeeking.value = true;
+  isSeeking.value = true
   wasPlayingBeforeSeek.value = playerStore.isPlaying
 
-  const percentage = calculateTimeFromEvent(e);
+  const percentage = calculateTimeFromEvent(e)
 
   if (playerStore.duration) {
-    const seekTime = percentage * playerStore.duration;
-    playerStore.currentTime = seekTime;
+    const seekTime = percentage * playerStore.duration
+    playerStore.currentTime = seekTime
   }
 
   // 添加全局事件监听器（支持鼠标和触摸）
-  window.addEventListener('mousemove', handleSeekMove, { passive: false });
-  window.addEventListener('mouseup', handleSeekEnd);
-  window.addEventListener('touchmove', handleSeekMove, { passive: false });
-  window.addEventListener('touchend', handleSeekEnd);
+  window.addEventListener('mousemove', handleSeekMove, { passive: false }) // 防止页面跟着被拖动
+  window.addEventListener('mouseup', handleSeekEnd)
+  window.addEventListener('touchmove', handleSeekMove, { passive: false })
+  window.addEventListener('touchend', handleSeekEnd)
 }
 
 // 拖动过程
 const handleSeekMove = (e) => {
-  e.preventDefault();
-  if (!isSeeking.value) return;
+  e.preventDefault()
+  if (!isSeeking.value) return
 
   // 在拖动时持续更新UI
-  const progressBar = document.querySelector('.progress-bar');
+  const progressBar = document.querySelector('.progress-bar')
   if (progressBar) {
-    const percentage = calculateTimeFromEvent(e, progressBar);
+    const percentage = calculateTimeFromEvent(e, progressBar)
 
     if (playerStore.duration) {
-      const seekTime = percentage * playerStore.duration;
-      playerStore.currentTime = seekTime;
+      const seekTime = percentage * playerStore.duration
+      playerStore.currentTime = seekTime
     }
   }
 }
@@ -290,20 +297,20 @@ const handleSeekMove = (e) => {
 // 拖动结束
 const handleSeekEnd = (e) => {
   // 移除事件监听器（鼠标和触摸）
-  window.removeEventListener('mousemove', handleSeekMove);
-  window.removeEventListener('mouseup', handleSeekEnd);
-  window.removeEventListener('touchmove', handleSeekMove);
-  window.removeEventListener('touchend', handleSeekEnd);
+  window.removeEventListener('mousemove', handleSeekMove)
+  window.removeEventListener('mouseup', handleSeekEnd)
+  window.removeEventListener('touchmove', handleSeekMove)
+  window.removeEventListener('touchend', handleSeekEnd)
 
-  if (!isSeeking.value) return;
+  if (!isSeeking.value) return
 
   const progressBar = document.querySelector('.progress-bar')
   if (progressBar) {
-    const percentage = calculateTimeFromEvent(e, progressBar);
+    const percentage = calculateTimeFromEvent(e, progressBar)
     if (playerStore.duration) {
-      const newTime = percentage * playerStore.duration;
-      playerStore.currentTime = newTime;
-      player.value.currentTime = newTime;
+      const newTime = percentage * playerStore.duration
+      playerStore.currentTime = newTime
+      player.value.currentTime = newTime
     }
   }
 
@@ -311,74 +318,72 @@ const handleSeekEnd = (e) => {
 
   // 如果拖动前是播放状态，恢复播放
   if (wasPlayingBeforeSeek.value) {
-    player.value.play().catch(() => {
-      // 恢复播放失败
-    })
+    player.value.play().catch(() => { })
   }
 }
 
 // 拖动音量条
 
 const handleVolumeDragStart = (e) => {
-  e.preventDefault();
-  if (!player.value) return;
+  e.preventDefault()
+  if (!player.value) return
 
-  isDraggingVolume.value = true;
+  isDraggingVolume.value = true
 
-  const percentage = calculateTimeFromEvent(e);
+  const percentage = calculateTimeFromEvent(e)
   playerStore.setVolume(percentage)
 
   // 添加全局事件监听器（支持鼠标和触摸）
-  window.addEventListener('mousemove', handleVolumeDragging, { passive: false });
-  window.addEventListener('mouseup', handleVolumeDragEnd);
-  window.addEventListener('touchmove', handleVolumeDragging, { passive: false });
-  window.addEventListener('touchend', handleVolumeDragEnd);
+  window.addEventListener('mousemove', handleVolumeDragging, { passive: false })
+  window.addEventListener('mouseup', handleVolumeDragEnd)
+  window.addEventListener('touchmove', handleVolumeDragging, { passive: false })
+  window.addEventListener('touchend', handleVolumeDragEnd)
 }
 
 const handleVolumeDragging = (e) => {
-  e.preventDefault();
-  if (!isDraggingVolume.value) return;
+  e.preventDefault()
+  if (!isDraggingVolume.value) return
 
-  const volumeSlider = document.querySelector('.volume-slider');
+  const volumeSlider = document.querySelector('.volume-slider')
   if (volumeSlider) {
-    const percentage = calculateTimeFromEvent(e, volumeSlider);
+    const percentage = calculateTimeFromEvent(e, volumeSlider)
     playerStore.setVolume(percentage)
   }
 }
 
 const handleVolumeDragEnd = (e) => {
-  if (!isDraggingVolume.value) return;
+  if (!isDraggingVolume.value) return
 
   // 移除事件监听器（鼠标和触摸）
-  window.removeEventListener('mousemove', handleVolumeDragging);
-  window.removeEventListener('mouseup', handleVolumeDragEnd);
-  window.removeEventListener('touchmove', handleVolumeDragging);
-  window.removeEventListener('touchend', handleVolumeDragEnd);
+  window.removeEventListener('mousemove', handleVolumeDragging)
+  window.removeEventListener('mouseup', handleVolumeDragEnd)
+  window.removeEventListener('touchmove', handleVolumeDragging)
+  window.removeEventListener('touchend', handleVolumeDragEnd)
 
-  const volumeSlider = document.querySelector('.volume-slider');
+  const volumeSlider = document.querySelector('.volume-slider')
   if (volumeSlider) {
-    const percentage = calculateTimeFromEvent(e, volumeSlider);
-    playerStore.setVolume(percentage);
+    const percentage = calculateTimeFromEvent(e, volumeSlider)
+    playerStore.setVolume(percentage)
     // 音量会通过 watch 自动同步到 audio 元素
   }
 
-  isDraggingVolume.value = false;
+  isDraggingVolume.value = false
 }
 
-
 // 监听isPlaying状态，同步播放器控件行为
-watch(() => playerStore.isPlaying, (newIsPlaying) => {
-  if (!player.value) return;
-  if (newIsPlaying) {
-    player.value.play().catch(() => {
-      // 播放失败
-    })
-  } else {
-    player.value.pause()
-  }
-})
-
-
+watch(
+  () => playerStore.isPlaying,
+  (newIsPlaying) => {
+    if (!player.value) return
+    if (newIsPlaying) {
+      player.value.play().catch(() => {
+        // 播放失败
+      })
+    } else {
+      player.value.pause()
+    }
+  },
+)
 </script>
 
 <style scoped>
@@ -401,6 +406,12 @@ watch(() => playerStore.isPlaying, (newIsPlaying) => {
   margin-top: auto;
 }
 
+/* 全屏模式下的迷你播放器样式 */
+#MusicPlayer.fullscreen-mode {
+  opacity: 0.6;
+  backdrop-filter: blur(20px);
+}
+
 /* 专辑封面样式 */
 .album-cover {
   width: 70px;
@@ -411,8 +422,6 @@ watch(() => playerStore.isPlaying, (newIsPlaying) => {
   flex-shrink: 0;
   min-width: 70px;
 }
-
-
 
 .cover-image:hover {
   transform: scale(1.05);
@@ -558,7 +567,7 @@ watch(() => playerStore.isPlaying, (newIsPlaying) => {
   height: 100%;
   background: #808080;
   border-radius: 3px;
-  transition: width 0.1s ease;
+  transition: width 0s ease-in-out;
 }
 
 .progress-thumb {
@@ -571,7 +580,7 @@ watch(() => playerStore.isPlaying, (newIsPlaying) => {
   border-radius: 50%;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   opacity: 0;
-  transition: all 0.2s ease;
+  transition: all 0s ease-in-out;
   cursor: grab;
 }
 

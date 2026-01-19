@@ -10,6 +10,8 @@ export const usePlayerStore = defineStore('player', () => {
   const duration = ref(0)
   const volume = ref(0.7) // 0-1之间
 
+  const isFullscreen = ref(false)
+
   const informMessage = ref('')
 
   //Getters
@@ -56,6 +58,10 @@ export const usePlayerStore = defineStore('player', () => {
     volume.value = Math.min(Math.max(0, newVolume), 1)
   }
 
+  const toggleFullscreen = () => {
+    isFullscreen.value = !isFullscreen.value
+  }
+
   return {
     currentDoc,
     currentSongIndex,
@@ -74,5 +80,7 @@ export const usePlayerStore = defineStore('player', () => {
     nextSong,
     previousSong,
     setVolume,
+    isFullscreen,
+    toggleFullscreen,
   }
 })

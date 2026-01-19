@@ -379,3 +379,11 @@ input[type='file']:hover {
     font-size: 0.9rem;
   }
 }
+
+/* 全局禁用页面滚动——应用于body时生效 */
+
+.no-scoll {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
