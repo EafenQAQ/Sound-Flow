@@ -138,7 +138,8 @@
           <!-- 进度条 -->
           <div class="mobile-progress">
             <span class="time current-time">{{ formattedCurrentTime }}</span>
-            <div @mousedown.prevent="handleSeekStart" @touchstart.prevent="handleSeekStart" class="progress-bar">
+            <div id="mobile-progress-bar" @mousedown.prevent="handleSeekStart" @touchstart.prevent="handleSeekStart"
+              class="progress-bar">
               <div class="progress-track">
                 <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
                 <div class="progress-thumb" :style="{ left: progressPercent + '%' }"></div>
@@ -263,7 +264,7 @@ const handleSeekMove = (e) => {
   e.preventDefault()
   if (!isSeeking.value) return
 
-  const progressBar = document.querySelector('.fullscreen-player .progress-bar')
+  const progressBar = document.querySelector('#mobile-progress-bar')
   if (progressBar) {
     const percentage = calculateTimeFromEvent(e, progressBar)
 
@@ -282,7 +283,7 @@ const handleSeekEnd = (e) => {
 
   if (!isSeeking.value) return
 
-  const progressBar = document.querySelector('.fullscreen-player .progress-bar')
+  const progressBar = document.querySelector('#mobile-progress-bar')
   if (progressBar) {
     const percentage = calculateTimeFromEvent(e, progressBar)
     if (playerStore.duration) {
@@ -893,7 +894,7 @@ const handleVolumeDragEnd = (e) => {
   background: white;
   border-radius: 50%;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  opacity: 0;
+  opacity: 1;
   transition: all 0.2s ease;
   cursor: grab;
 }
