@@ -81,7 +81,8 @@
               <!-- 进度条区域 -->
               <div class="progress-area">
                 <span class="time current-time">{{ formattedCurrentTime }}</span>
-                <div @mousedown.prevent="handleSeekStart" @touchstart.prevent="handleSeekStart" class="progress-bar">
+                <div id="desktop-progress-bar" @mousedown.prevent="handleSeekStart"
+                  @touchstart.prevent="handleSeekStart" class="progress-bar">
                   <div class="progress-track">
                     <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
                     <div class="progress-thumb" :style="{ left: progressPercent + '%' }"></div>
@@ -264,7 +265,15 @@ const handleSeekMove = (e) => {
   e.preventDefault()
   if (!isSeeking.value) return
 
-  const progressBar = document.querySelector('#mobile-progress-bar')
+  // 判断在哪个进度条上操作，根据条件选取正确的进度条
+
+  let progressBar
+  if (e.type === 'touchmove') {
+    progressBar = document.querySelector('#mobile-progress-bar')
+  } else if (e.type === 'mousemove') {
+    progressBar = document.querySelector('#desktop-progress-bar')
+  }
+
   if (progressBar) {
     const percentage = calculateTimeFromEvent(e, progressBar)
 
@@ -283,7 +292,15 @@ const handleSeekEnd = (e) => {
 
   if (!isSeeking.value) return
 
-  const progressBar = document.querySelector('#mobile-progress-bar')
+  // 判断在哪个进度条上操作，根据条件选取正确的进度条
+
+  let progressBar
+  if (e.type === 'touchend') {
+    progressBar = document.querySelector('#mobile-progress-bar')
+  } else if (e.type === 'mouseup') {
+    progressBar = document.querySelector('#desktop-progress-bar')
+  }
+
   if (progressBar) {
     const percentage = calculateTimeFromEvent(e, progressBar)
     if (playerStore.duration) {
@@ -691,7 +708,7 @@ const handleVolumeDragEnd = (e) => {
   height: 100%;
   background: #808080;
   border-radius: 3px;
-  transition: width 0.1s ease;
+  transition: width 0s ease;
 }
 
 .progress-thumb {
@@ -704,7 +721,7 @@ const handleVolumeDragEnd = (e) => {
   border-radius: 50%;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   opacity: 0;
-  transition: all 0.2s ease;
+  transition: all 0s ease;
   cursor: grab;
 }
 
