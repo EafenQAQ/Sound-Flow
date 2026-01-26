@@ -6,7 +6,7 @@
         <RouterLink :to="{ name: 'playlistDetails', params: { id: playlist.id } }">
           <div class="single">
             <div class="thumbnail">
-              <OptimizedImage :playlist="playlist" :pixel-size="'_800x800.webp'" :preload="true" />
+              <OptimizedImage :playlist="playlist" :pixel-size="imageSize" :preload="true" />
               <div class="overlay">
                 <span class="play-icon">▶</span>
               </div>
@@ -24,6 +24,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import OptimizedImage from './OptimizedImage.vue'
 
 defineProps({
@@ -32,6 +33,18 @@ defineProps({
     required: true,
   },
 })
+
+const imageSize = computed(() => {
+
+  if (window.innerWidth <= 768) {
+    // 移动设备
+    return '_600x600.webp';
+  } else {
+    // 桌面设备
+    return '_800x800.webp';
+  }
+})
+
 </script>
 
 <style scoped>

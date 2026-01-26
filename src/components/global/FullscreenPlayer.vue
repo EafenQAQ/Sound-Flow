@@ -268,9 +268,11 @@ const handleSeekMove = (e) => {
   // 判断在哪个进度条上操作，根据条件选取正确的进度条
 
   let progressBar
-  if (e.type === 'touchmove') {
+  if (window.innerWidth <= 768) {
+    // 移动端
     progressBar = document.querySelector('#mobile-progress-bar')
-  } else if (e.type === 'mousemove') {
+  } else if (window.innerWidth > 768) {
+    // 桌面端
     progressBar = document.querySelector('#desktop-progress-bar')
   }
 
@@ -292,12 +294,14 @@ const handleSeekEnd = (e) => {
 
   if (!isSeeking.value) return
 
-  // 判断在哪个进度条上操作，根据条件选取正确的进度条
+   // 判断在哪个进度条上操作，根据条件选取正确的进度条
 
   let progressBar
-  if (e.type === 'touchend') {
+  if (window.innerWidth <= 768) {
+    // 移动端
     progressBar = document.querySelector('#mobile-progress-bar')
-  } else if (e.type === 'mouseup') {
+  } else if (window.innerWidth > 768) {
+    // 桌面端
     progressBar = document.querySelector('#desktop-progress-bar')
   }
 

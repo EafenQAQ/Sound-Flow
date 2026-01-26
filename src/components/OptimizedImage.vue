@@ -14,7 +14,8 @@ const props = defineProps({
   },
   pixelSize: {
     type: String,
-    required: true
+    required: false,
+    default: '_800x800.webp'
   },
   imageClass: {
     type: String,
