@@ -31,7 +31,7 @@
               <div class="vinyl-record" :class="{ rotating: playerStore.isPlaying }">
                 <div class="vinyl-inner">
                   <OptimizedImage v-if="playerStore.currentDoc" :lazy-load="false" :image-class="'vinyl-cover'"
-                    :playlist="playerStore.currentDoc" :pixel-size="'_400x400.webp'" />
+                    :playlist="playerStore.currentDoc" :pixel-size="'_600x600.webp'" />
                 </div>
               </div>
             </div>
@@ -125,7 +125,7 @@
             <div class="vinyl-record" :class="{ rotating: playerStore.isPlaying }">
               <div class="vinyl-inner">
                 <OptimizedImage v-if="playerStore.currentDoc" :lazy-load="false" :image-class="'vinyl-cover'"
-                  :playlist="playerStore.currentDoc" :pixel-size="'_400x400.webp'" />
+                  :playlist="playerStore.currentDoc" :pixel-size="'_600x600.webp'" />
               </div>
             </div>
           </div>
@@ -294,7 +294,7 @@ const handleSeekEnd = (e) => {
 
   if (!isSeeking.value) return
 
-   // 判断在哪个进度条上操作，根据条件选取正确的进度条
+  // 判断在哪个进度条上操作，根据条件选取正确的进度条
 
   let progressBar
   if (window.innerWidth <= 768) {
