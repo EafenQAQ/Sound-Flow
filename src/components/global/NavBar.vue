@@ -26,11 +26,13 @@
         <RouterLink :to="{ name: 'userPlaylist', params: { userId: user.uid } }" @click="closeMobileMenu">我的歌单
         </RouterLink>
         <RouterLink :to="{ name: 'playlistManager' }" @click="closeMobileMenu">歌单管理</RouterLink>
-        <div class="greeting">
-          <p>Hi! {{ user.displayName }}</p>
-        </div>
+        <RouterLink :to="{ name: 'profile' }" @click="closeMobileMenu">
+          <div class="greeting">
+            <p>Hi! {{ user.displayName }}</p>
+          </div>
+        </RouterLink>
       </template>
-      <button v-if="user" @click="handleLogout">登出</button>
+      <button class="log-out-btn" v-if="user" @click="handleLogout">登出</button>
 
       <Transition name="fade" mode="out-in">
         <p v-if="success" class="success">{{ success }}</p>
@@ -288,5 +290,14 @@ img {
   .btn-container a:hover {
     background: var(--secondary);
   }
+}
+
+button.log-out-btn {
+  padding: 5px 10px;
+  margin-left: 1rem;
+}
+
+button.log-out-btn:hover {
+  background-color: rgb(237, 98, 98);
 }
 </style>

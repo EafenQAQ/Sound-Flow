@@ -32,7 +32,7 @@
                 <div class="vinyl-inner">
                   <OptimizedImage v-if="playerStore.currentDoc" :lazy-load="false" :image-class="'vinyl-cover'"
                     :playlist="playerStore.currentDoc" :pixel-size="'_600x600.webp'" />
-                </div>
+                </div> 
               </div>
             </div>
 
