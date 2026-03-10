@@ -68,9 +68,6 @@ import { ref, reactive } from 'vue'
 const defaultAvatar = 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'
 
 // 用户信息（mock 数据）
-
-
-
 const user = reactive({
   id: '884567',
   nickname: '音乐爱好者',
@@ -120,18 +117,67 @@ const triggerAvatarUpload = () => {
   avatarInput.value?.click()
 }
 
-const handleAvatarChange = (event) => {
+const handleAvatarChange = async (event) => {
   const file = event.target.files?.[0]
   if (file) {
-    // 这里可以处理文件上传逻辑
-    console.log('选择的文件:', file.name)
+    console.log('选择的文件:', file)
+
+
+    const buffer = await file.arrayBuffer()
+
+    console.log(`原始文件大小: ${buffer.byteLength} 字节`);
+
+    // 压缩图片
+    const resultUrl = await compressImage(file)
     // 预览图片
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      user.avatar = e.target.result
-    }
-    reader.readAsDataURL(file)
+
+    user.avatar = resultUrl
   }
+}
+
+const compressImage = async (fileBlob, multiples = 4) => {
+  const img = new Image()
+  img.src = URL.createObjectURL(fileBlob)
+
+  // 等图片加载之后再压缩
+  await new Promise((resolve, reject) => {
+    img.onload = resolve
+    img.onerror = () => reject(new Error("图片加载失败，请检查文件格式"))
+  })
+  // 清除强引用防止内存泄露
+  URL.revokeObjectURL(img.src)
+
+  // ---**压缩关键逻辑**---
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+
+  canvas.width = img.width / multiples;
+  canvas.height = img.height / multiples;
+  // 将图片画到画布上
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+  // 获取内存中的像素数组 (Uint8ClampedArray)
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+  console.log("当前内存中的像素字节流:", imageData.data);
+
+  // 重编码
+  return await exportBlob(canvas)
+}
+
+const exportBlob = (canvas) => {
+  return new Promise((resolve, reject) => {
+
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error("Canvas 导出 Blob 失败"))
+        return;
+      }
+      console.log(`压缩完成：${(blob.size / 1024).toFixed(2)} KB`);
+      const previewUrl = URL.createObjectURL(blob)
+      resolve(previewUrl)
+    }, 'image/webp', 0.6)
+  })
+
 }
 </script>
 
