@@ -4,23 +4,10 @@
       <!-- 头像区域 -->
       <div class="avatar-section">
         <div class="avatar-wrapper" @click="triggerAvatarUpload">
-          <img
-            :src="user.avatar || defaultAvatar"
-            alt="用户头像"
-            class="avatar-img"
-          />
+          <img :src="user.avatar || defaultAvatar" alt="用户头像" class="avatar-img" />
           <div class="avatar-overlay">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="17 8 12 3 7 8" />
               <line x1="12" y1="3" x2="12" y2="15" />
@@ -28,13 +15,7 @@
             <span>更换头像</span>
           </div>
         </div>
-        <input
-          ref="avatarInput"
-          type="file"
-          accept="image/*"
-          class="avatar-input"
-          @change="handleAvatarChange"
-        />
+        <input ref="avatarInput" type="file" accept="image/*" class="avatar-input" @change="handleAvatarChange" />
       </div>
 
       <!-- 用户信息区域 -->
@@ -64,33 +45,14 @@
       <div class="menu-list">
         <div class="menu-item" v-for="item in menuItems" :key="item.label" @click="item.action">
           <div class="menu-icon">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path :d="item.iconPath" />
             </svg>
           </div>
           <span class="menu-label">{{ item.label }}</span>
-          <svg
-            class="menu-arrow"
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
+          <svg class="menu-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="9 18 15 12 9 6" />
           </svg>
         </div>
@@ -106,6 +68,9 @@ import { ref, reactive } from 'vue'
 const defaultAvatar = 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'
 
 // 用户信息（mock 数据）
+
+
+
 const user = reactive({
   id: '884567',
   nickname: '音乐爱好者',
@@ -145,7 +110,10 @@ const menuItems = ref([
   },
 ])
 
-// 头像上传相关
+// --------------------
+// 压缩用户上传的头像图片
+// --------------------
+
 const avatarInput = ref(null)
 
 const triggerAvatarUpload = () => {
