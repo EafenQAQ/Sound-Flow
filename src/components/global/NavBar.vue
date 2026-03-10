@@ -22,10 +22,11 @@
       </template>
 
       <template v-else>
-        <RouterLink :to="{ name: 'createPlaylist' }" @click="closeMobileMenu">创建歌单</RouterLink>
-        <RouterLink :to="{ name: 'userPlaylist', params: { userId: user.uid } }" @click="closeMobileMenu">我的歌单
+        <RouterLink class="menu-tabs" :to="{ name: 'createPlaylist' }" @click="closeMobileMenu">创建歌单</RouterLink>
+        <RouterLink class="menu-tabs" :to="{ name: 'userPlaylist', params: { userId: user.uid } }"
+          @click="closeMobileMenu">我的歌单
         </RouterLink>
-        <RouterLink :to="{ name: 'playlistManager' }" @click="closeMobileMenu">歌单管理</RouterLink>
+        <RouterLink class="menu-tabs" :to="{ name: 'playlistManager' }" @click="closeMobileMenu">歌单管理</RouterLink>
         <RouterLink :to="{ name: 'profile' }" @click="closeMobileMenu">
           <div class="greeting">
             <p>Hi! {{ user.displayName }}</p>
@@ -299,5 +300,41 @@ button.log-out-btn {
 
 button.log-out-btn:hover {
   background-color: rgb(237, 98, 98);
+}
+
+/* routerlink样式 */
+
+
+
+
+.router-link-exact-active {
+  font-weight: bold;
+  color: var(--primary);
+}
+
+.menu-tabs {
+
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.menu-tabs::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: var(--primary);
+
+  /* 初始态 */
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s ease-in-out;
+
+}
+
+.menu-tabs:hover::after {
+  transform: scaleX(1);
 }
 </style>

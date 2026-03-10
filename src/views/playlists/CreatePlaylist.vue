@@ -92,6 +92,10 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
+#CreatePlaylist {
+  margin-top: 2rem;
+}
+
 h2 {
   text-align: center;
   margin-bottom: 2rem;
