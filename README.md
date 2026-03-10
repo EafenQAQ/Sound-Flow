@@ -29,6 +29,10 @@
 
 ![歌单管理](Snipaste_2025-07-27_18-07-35.png)
 
+### 沉浸式播放页
+<img width="2503" height="1285" alt="image" src="https://github.com/user-attachments/assets/f9b1fb60-6150-4ee4-bbcd-639903635df5" />
+
+
 ## 🚀 技术栈
 
 - **前端框架**: Vue 3 + Composition API
