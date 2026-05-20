@@ -101,7 +101,7 @@ const useStorage = () => {
       const { data, error: uploadError } = await supabase.storage
         .from('covers')
         .upload(filePath.value, compressedFile, {
-          cacheControl: '3600',
+          cacheControl: '2592000', // 30天
           upsert: false,
           contentType: 'image/webp',
         })
@@ -130,7 +130,7 @@ const useStorage = () => {
       const { data, error: uploadError } = await supabase.storage
         .from('songs')
         .upload(filePath.value, song, {
-          cacheControl: '3600',
+          cacheControl: '2592000', // 30天
           upsert: false,
           contentType: song.type || 'audio/mpeg',
         })

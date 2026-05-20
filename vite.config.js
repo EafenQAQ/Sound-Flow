@@ -28,6 +28,10 @@ export default defineConfig(({ command }) => {
     build: {
       rollupOptions: {
         output: {
+          // 静态资源文件名添加内容哈希，便于长期缓存
+          entryFileNames: 'assets/js/[name]-[hash].js',
+          chunkFileNames: 'assets/js/[name]-[hash].js',
+          assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
           // 在这里添加对chunks的配置
           manualChunks(id) {
             if (id.includes('node_modules')) {
