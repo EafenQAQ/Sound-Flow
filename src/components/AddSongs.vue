@@ -1,22 +1,20 @@
 <template>
   <Teleport to="body">
-    <Transition name="modal">
-      <div @click.self="$emit('close')" class="modal-overlay">
-        <div class="modal-content">
-          <form @submit.prevent="handleSubmit" class="song-form">
-            <button type="button" @click="$emit('close')" class="close-btn">X</button>
-            <input type="text" placeholder="歌曲名" required v-model="title" />
-            <input type="text" placeholder="歌手名" required v-model="artist" />
-            <input @change="handleChange" type="file" accept="audio/*" required />
-            <div class="error">{{ fileError }}</div>
-            <div class="button-group">
-              <button v-if="!isPending" type="submit" class="submit-btn">添加歌曲</button>
-              <button v-if="isPending" disabled style="cursor: not-allowed">Loading...</button>
-            </div>
-          </form>
-        </div>
+    <div @click.self="startClose" class="modal-overlay" :class="{ closing }">
+      <div class="modal-content">
+        <form @submit.prevent="handleSubmit" class="song-form">
+          <button type="button" @click="startClose" class="close-btn">X</button>
+          <input type="text" placeholder="歌曲名" required v-model="title" />
+          <input type="text" placeholder="歌手名" required v-model="artist" />
+          <input @change="handleChange" type="file" accept="audio/*" required />
+          <div class="error">{{ fileError }}</div>
+          <div class="button-group">
+            <button v-if="!isPending" type="submit" class="submit-btn">添加歌曲</button>
+            <button v-if="isPending" disabled style="cursor: not-allowed">Loading...</button>
+          </div>
+        </form>
       </div>
-    </Transition>
+    </div>
   </Teleport>
 </template>
 
@@ -34,9 +32,18 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
+// 关闭动画
+const closing = ref(false)
+const ANIMATION_DURATION = 300
+
+const startClose = () => {
+  closing.value = true
+  setTimeout(() => emit('close'), ANIMATION_DURATION)
+}
+
 // ESC 键关闭
 const handleKeydown = (e) => {
-  if (e.key === 'Escape') emit('close')
+  if (e.key === 'Escape') startClose()
 }
 onMounted(() => document.addEventListener('keydown', handleKeydown))
 onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
@@ -80,7 +87,7 @@ const handleSubmit = async () => {
 
   isPending.value = false
   if (!error.value) {
-    emit('close')
+    startClose()
     title.value = null
     artist.value = null
     console.log('updateDocument方法，修改的数据是：', props.document.songs)
@@ -89,28 +96,24 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-/* Transition 动画 */
-.modal-enter-from {
-  opacity: 0;
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
-.modal-enter-from .modal-content {
-  transform: translateY(-20px);
-  opacity: 0;
-}
-.modal-leave-to {
-  opacity: 0;
-}
-.modal-leave-to .modal-content {
-  transform: translateY(-20px);
-  opacity: 0;
-}
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.3s ease;
-}
-.modal-enter-active .modal-content,
-.modal-leave-active .modal-content {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .modal-overlay {
@@ -120,13 +123,24 @@ const handleSubmit = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
+  animation: modalFadeIn 0.3s ease forwards;
 }
+
+.modal-overlay.closing {
+  animation: modalFadeIn 0.3s ease reverse forwards;
+}
+
 .modal-content {
   background: white;
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   max-height: 80vh;
   overflow-y: auto;
+  animation: modalSlideUp 0.3s ease forwards;
+}
+
+.modal-overlay.closing .modal-content {
+  animation: modalSlideUp 0.3s ease reverse forwards;
 }
 .modal-overlay h2 {
   text-align: center;
