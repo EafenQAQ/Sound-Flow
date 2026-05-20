@@ -1,21 +1,83 @@
 import { supabase } from '@/supabase/config'
 import { getUser } from './getUser'
 import { ref } from 'vue'
-import imageCompression from 'browser-image-compression'
 
-const compressImage = async (file) => {
-  const options = {
-    maxSizeMB: 0.2, // 最大 200KB
-    maxWidthOrHeight: 800, // 最大尺寸 800x800
-    useWebWorker: true,
-    fileType: 'image/webp', // 输出 WebP 格式
+/**
+ * 压缩图片为 WebP 格式
+ * @param {Blob} fileBlob - 图片文件 Blob
+ * @param {number} multiples - 尺寸缩小的倍数，默认 4
+ * @param {number} quality - WebP 质量 0-1，默认 0.6
+ * @returns {Promise<Blob>} 压缩后的 WebP Blob
+ */
+const compressImage = async (fileBlob, multiples = 4, quality = 0.6) => {
+  // 参数校验
+  if (!fileBlob) {
+    throw new Error('压缩失败：未提供图片文件')
+  }
+  if (!(fileBlob instanceof Blob)) {
+    throw new Error('压缩失败：文件格式无效')
+  }
+  if (!fileBlob.type.startsWith('image/')) {
+    throw new Error('压缩失败：仅支持图片文件')
   }
 
-  const compressedFile = await imageCompression(file, options)
+  // 限制参数范围
+  const safeMultiples = Math.max(1, Math.min(multiples, 20))
+  const safeQuality = Math.max(0.1, Math.min(quality, 1))
 
-  // 生成新的 File 对象，扩展名改为 .webp
-  const webpName = file.name.replace(/\.[^.]+$/, '.webp')
-  return new File([compressedFile], webpName, { type: 'image/webp' })
+  const img = new Image()
+  const objectUrl = URL.createObjectURL(fileBlob)
+
+  try {
+    // 加载图片（添加超时保护）
+    const imgLoadPromise = new Promise((resolve, reject) => {
+      img.onload = () => resolve()
+      img.onerror = () => reject(new Error('图片加载失败'))
+      // 超时保护：10秒
+      img._timeout = setTimeout(() => {
+        reject(new Error('图片加载超时'))
+      }, 10000)
+    })
+
+    img.src = objectUrl
+    await imgLoadPromise
+  } finally {
+    // 无论成功失败都要清理 ObjectURL
+    URL.revokeObjectURL(objectUrl)
+    clearTimeout(img._timeout)
+  }
+
+  // 防止尺寸缩小到太小（最小 50px）
+  const minSize = 50
+  let targetWidth = Math.max(minSize, Math.floor(img.width / safeMultiples))
+  let targetHeight = Math.max(minSize, Math.floor(img.height / safeMultiples))
+
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+
+  canvas.width = targetWidth
+  canvas.height = targetHeight
+
+  // 使用高质量插值
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(img, 0, 0, targetWidth, targetHeight)
+
+  // 导出
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(new Error('Canvas 导出 Blob 失败'))
+          return
+        }
+        console.log(`图片压缩完成：${(blob.size / 1024).toFixed(2)} KB`)
+        resolve(blob)
+      },
+      'image/webp',
+      safeQuality,
+    )
+  })
 }
 
 const useStorage = () => {
@@ -28,7 +90,9 @@ const useStorage = () => {
 
     try {
       // 先压缩图片
-      const compressedFile = await compressImage(file)
+      const compressedBlob = await compressImage(file)
+      const webpName = file.name.replace(/\.[^.]+$/, '.webp')
+      const compressedFile = new File([compressedBlob], webpName, { type: 'image/webp' })
 
       // 生成唯一文件名
       const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}.webp`
