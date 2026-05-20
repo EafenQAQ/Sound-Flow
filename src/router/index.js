@@ -46,7 +46,7 @@ const router = createRouter({
     {
       path: '/playlist/manager',
       name: 'playlistManager',
-      component: () => import('@/views/management/playlistManager.vue'),
+      component: () => import('@/views/management/PlaylistManager.vue'),
       meta: {
         requireAuth: true,
       },

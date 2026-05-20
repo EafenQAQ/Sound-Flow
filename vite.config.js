@@ -7,7 +7,14 @@ import { visualizer } from 'rollup-plugin-visualizer'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue(), vueDevTools(), visualizer({ open: true, filename: 'bundle-report.html' })],
+  plugins: [
+    vue(),
+    // 仅开发环境启用
+    process.env.NODE_ENV === 'development' && vueDevTools(),
+    // 生产构建不生成报告
+    process.env.NODE_ENV === 'development' &&
+      visualizer({ open: true, filename: 'bundle-report.html' }),
+  ].filter(Boolean),
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
