@@ -1,39 +1,46 @@
 <template>
-  <div class="add-songs-container">
-
-
-    <button v-if="!showForm" @click="showForm = true" class="add-song-btn">添加新歌曲</button>
-    <form v-if="showForm" @submit.prevent="handleSubmit" class="song-form">
-      <input type="text" placeholder="歌曲名" required v-model="title">
-      <input type="text" placeholder="歌手名" required v-model="artist">
-      <input @change="handleChange" type="file" accept="audio/*" required>
-      <div class="error">{{ fileError }}</div>
-      <div class="button-group">
-        <button v-if="!isPending" type="submit" class="submit-btn">添加歌曲</button>
-        <button v-if="isPending" disabled style="cursor: not-allowed;">Loading...</button>
-        <button type="button" @click="showForm = false" class="close-btn">关闭</button>
+  <Teleport to="body">
+    <Transition name="modal">
+      <div @click.self="$emit('close')" class="modal-overlay">
+        <div class="modal-content">
+          <form @submit.prevent="handleSubmit" class="song-form">
+            <button type="button" @click="$emit('close')" class="close-btn">X</button>
+            <input type="text" placeholder="歌曲名" required v-model="title" />
+            <input type="text" placeholder="歌手名" required v-model="artist" />
+            <input @change="handleChange" type="file" accept="audio/*" required />
+            <div class="error">{{ fileError }}</div>
+            <div class="button-group">
+              <button v-if="!isPending" type="submit" class="submit-btn">添加歌曲</button>
+              <button v-if="isPending" disabled style="cursor: not-allowed">Loading...</button>
+            </div>
+          </form>
+        </div>
       </div>
-
-    </form>
-
-  </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup>
-
-import useDocument from '@/composables/useDocument';
-import useStorage from '@/composables/useStorage';
-import { ref } from 'vue';
+import useDocument from '@/composables/useDocument'
+import useStorage from '@/composables/useStorage'
+import { onMounted, onUnmounted, ref } from 'vue'
 
 const props = defineProps({
   document: {
     type: Object,
     required: true,
-
-  }
+  },
 })
 
-const showForm = ref(false)
+const emit = defineEmits(['close'])
+
+// ESC 键关闭
+const handleKeydown = (e) => {
+  if (e.key === 'Escape') emit('close')
+}
+onMounted(() => document.addEventListener('keydown', handleKeydown))
+onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
+
 const title = ref(null)
 const artist = ref(null)
 
@@ -55,7 +62,7 @@ const handleChange = (e) => {
 }
 
 const handleSubmit = async () => {
-  if (!song.value) return;
+  if (!song.value) return
   isPending.value = true
   await uploadSong(song.value, props.document.id) //上传歌曲文件到Storage
 
@@ -65,35 +72,63 @@ const handleSubmit = async () => {
     artist: artist.value,
     id: Math.floor(Math.random() * 1000000),
     filePath: filePath.value,
-    songUrl: url.value
+    songUrl: url.value,
   }
   await updateDocument({
-    songs: [...props.document.songs, newSong]
+    songs: [...props.document.songs, newSong],
   })
 
   isPending.value = false
   if (!error.value) {
-    showForm.value = false
+    emit('close')
     title.value = null
     artist.value = null
     console.log('updateDocument方法，修改的数据是：', props.document.songs)
   }
-
 }
-
-
-
-
 </script>
 
 <style scoped>
-.add-songs-container {
-  max-width: 600px;
-  width: 100%;
-  padding: 2rem;
+/* Transition 动画 */
+.modal-enter-from {
+  opacity: 0;
+}
+.modal-enter-from .modal-content {
+  transform: translateY(-20px);
+  opacity: 0;
+}
+.modal-leave-to {
+  opacity: 0;
+}
+.modal-leave-to .modal-content {
+  transform: translateY(-20px);
+  opacity: 0;
+}
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+.modal-enter-active .modal-content,
+.modal-leave-active .modal-content {
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.add-songs-container h2 {
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.modal-overlay h2 {
   text-align: center;
   margin-bottom: 2rem;
   font-weight: 700;
@@ -105,7 +140,7 @@ const handleSubmit = async () => {
 .add-song-btn {
   display: block;
   margin: 0 auto 2rem auto;
-  padding: 1rem 2rem;
+  padding: 4px 10px;
   font-size: 1.1rem;
   font-weight: 600;
   background: var(--secondary);
@@ -114,6 +149,7 @@ const handleSubmit = async () => {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 1px 2px 3px rgba(50, 50, 50, 0.05);
+  scale: 1.1;
 }
 
 .add-song-btn:hover {
@@ -125,6 +161,7 @@ const handleSubmit = async () => {
 
 /* 表单样式 */
 .song-form {
+  position: relative;
   max-width: 400px;
   margin: 0 auto;
   padding: 2rem;
@@ -132,19 +169,6 @@ const handleSubmit = async () => {
   box-shadow: 1px 2px 3px rgba(50, 50, 50, 0.05);
   border: 1px solid var(--secondary);
   background: white;
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* 输入框样式 */
@@ -179,7 +203,7 @@ const handleSubmit = async () => {
 }
 
 /* 表单按钮样式 */
-.song-form button {
+.song-form .submit-btn {
   padding: 0.8rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
@@ -202,9 +226,13 @@ const handleSubmit = async () => {
 }
 
 /* 关闭按钮 */
-.close-btn {
+.song-form .close-btn {
   background: var(--secondary);
   color: var(--primary);
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  padding: 4px 10px;
 }
 
 .close-btn:hover {
@@ -214,7 +242,7 @@ const handleSubmit = async () => {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .add-songs-container {
+  .modal-overlay {
     padding: 1rem;
     margin: 1rem;
   }

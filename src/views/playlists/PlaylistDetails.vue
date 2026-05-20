@@ -19,7 +19,12 @@
         </div>
 
         <div class="songs-section fade-in-up" style="animation-delay: 0.2s">
-          <h3 class="section-title">歌曲列表</h3>
+          <h3 class="section-title flex items-center justify-between">
+            歌曲列表
+
+            <button @click="showAddSongs = true" class="add-song-btn">+</button>
+            <AddSongs v-if="showAddSongs" @close="showAddSongs = false" :document="document" />
+          </h3>
           <div class="songs-list">
             <div class="no-songs" v-if="!document.songs.length">
               <div class="empty-state">
@@ -28,8 +33,12 @@
               </div>
             </div>
             <div v-else class="songs-grid">
-              <div v-for="(song, index) in document.songs" :key="song.id" class="song-item fade-in-up"
-                :style="{ 'animation-delay': `${0.3 + index * 0.05}s` }">
+              <div
+                v-for="(song, index) in document.songs"
+                :key="song.id"
+                class="song-item fade-in-up"
+                :style="{ 'animation-delay': `${0.3 + index * 0.05}s` }"
+              >
                 <div class="song-info">
                   <h4 class="song-title">{{ song.title }}</h4>
                   <p class="song-artist">{{ song.artist }}</p>
@@ -39,7 +48,6 @@
                 </div>
               </div>
             </div>
-            <AddSongs v-if="user?.id === document.userId" :document="document" class="add-songs-component" />
           </div>
         </div>
       </div>
@@ -53,7 +61,7 @@ import OptimizedImage from '@/components/OptimizedImage.vue'
 import getDocument from '@/composables/getDocument'
 import { getUser } from '@/composables/getUser'
 import { usePlayerStore } from '@/stores/player'
-import { watch } from 'vue'
+import { watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
 const props = defineProps({
   id: {
@@ -61,6 +69,9 @@ const props = defineProps({
     required: true,
   },
 })
+
+// Modal状态管理
+const showAddSongs = ref(false)
 
 const { user } = getUser()
 const { error, document } = getDocument('playlists', props.id)
@@ -332,10 +343,6 @@ const handlePlay = (index) => {
 .play-btn:hover {
   background: hsl(from var(--primary) h s calc(l - 10));
   transform: scale(1.05);
-}
-
-.add-songs-component {
-  margin-top: 2rem;
 }
 
 /* 移动端优化 */
