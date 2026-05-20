@@ -23,7 +23,7 @@
             歌曲列表
 
             <button @click="showAddSongs = true" class="add-song-btn">+</button>
-            <AddSongs v-if="showAddSongs" @close="showAddSongs = false" :document="document" />
+            <AddSongs v-if="showAddSongs" @close="showAddSongs = false" @song-added="refresh" :document="document" />
           </h3>
           <div class="songs-list">
             <div class="no-songs" v-if="!document.songs.length">
@@ -74,7 +74,7 @@ const props = defineProps({
 const showAddSongs = ref(false)
 
 const { user } = getUser()
-const { error, document } = getDocument('playlists', props.id)
+const { error, document, refresh } = getDocument('playlists', props.id)
 const router = useRouter()
 
 // 跳转到用户歌单页面

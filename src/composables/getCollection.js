@@ -95,7 +95,7 @@ const getCollection = (_collection, _query) => {
     })
   })
 
-  return { error, documents }
+  return { error, documents, refresh: fetchData }
 }
 
 export default getCollection

@@ -21,7 +21,10 @@
 <script setup>
 import useDocument from '@/composables/useDocument'
 import useStorage from '@/composables/useStorage'
+import { useNotificationStore } from '@/stores/notification'
 import { onMounted, onUnmounted, ref } from 'vue'
+
+const notify = useNotificationStore()
 
 const props = defineProps({
   document: {
@@ -30,7 +33,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'song-added'])
 
 // 关闭动画
 const closing = ref(false)
@@ -87,10 +90,14 @@ const handleSubmit = async () => {
 
   isPending.value = false
   if (!error.value) {
+    notify.success(`歌曲「${title.value}」添加成功`)
+    emit('song-added')
     startClose()
     title.value = null
     artist.value = null
     console.log('updateDocument方法，修改的数据是：', props.document.songs)
+  } else {
+    notify.error('添加歌曲失败，请重试')
   }
 }
 </script>

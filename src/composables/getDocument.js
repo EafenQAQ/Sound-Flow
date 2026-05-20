@@ -93,7 +93,7 @@ const getDocument = (collection, id) => {
     })
   })
 
-  return { error, document }
+  return { error, document, refresh: fetchDocument }
 }
 
 export default getDocument

@@ -39,7 +39,6 @@
         <div class="batch-actions">
           <button v-if="selectedPlaylists.length > 0" @click="showBatchDeleteModal = true" class="batch-delete-btn"
             :disabled="deleteLoading">
-            <span class="icon">🗑️</span>
             批量删除 ({{ selectedPlaylists.length }})
           </button>
         </div>
@@ -77,7 +76,16 @@
             </div>
 
             <div class="playlist-info">
-              <h3 class="playlist-title">{{ playlist.title }}</h3>
+              <div v-if="editingPlaylistId === playlist.id" class="edit-title-row">
+                <input v-model="editingTitle" class="edit-title-input" @keyup.enter="saveTitle(playlist)"
+                  @keyup.escape="cancelEditTitle" :disabled="editPending" maxlength="50" />
+                <button @click="saveTitle(playlist)" class="edit-confirm-btn" :disabled="editPending">✓</button>
+                <button @click="cancelEditTitle" class="edit-cancel-btn" :disabled="editPending">✕</button>
+              </div>
+              <h3 v-else class="playlist-title">
+                {{ playlist.title }}
+                <button @click="startEditTitle(playlist)" class="edit-title-btn" title="编辑歌单名">✎</button>
+              </h3>
               <p class="playlist-description">{{ playlist.description }}</p>
               <div class="playlist-stats">
                 <span class="songs-count">{{ playlist.songs.length }} 首歌曲</span>
@@ -168,7 +176,7 @@
                 </div>
 
                 <button @click="deleteSingleSong(song)" class="delete-song-btn" :disabled="deleteLoading">
-                  🗑️
+                  X
                 </button>
               </div>
             </div>
@@ -176,31 +184,26 @@
         </div>
       </div>
     </div>
-
-    <!-- 成功提示 -->
-    <Transition name="fade">
-      <div v-if="successMessage" class="success-toast">
-        {{ successMessage }}
-      </div>
-    </Transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { RouterLink } from 'vue-router'
 import { getUser } from '@/composables/getUser'
 import getCollection from '@/composables/getCollection'
 import useDelete from '@/composables/useDelete'
+import { supabase } from '@/supabase/config'
+import { useNotificationStore } from '@/stores/notification'
 
 // 用户状态
 const { user } = getUser()
 
+// 通知
+const notify = useNotificationStore()
+
 // 获取用户的歌单
-const {
-  error,
-  documents: userPlaylists,
-} = getCollection('playlists', user.value?.id)
+const { error, documents: userPlaylists, refresh: refreshPlaylists } = getCollection('playlists', user.value?.id)
 
 // 删除功能
 const {
@@ -218,9 +221,13 @@ const selectedSongs = ref([])
 const showBatchDeleteModal = ref(false)
 const showSongManager = ref(false)
 const currentPlaylist = ref(null)
-const successMessage = ref('')
 const isReloading = ref(false)
 const isInitialLoading = ref(true)
+
+// 编辑歌单名
+const editingPlaylistId = ref(null)
+const editingTitle = ref('')
+const editPending = ref(false)
 
 // 计算属性
 const isAllSelected = computed(() => {
@@ -244,10 +251,8 @@ const canManagePlaylist = (playlist) => {
 // 重新加载数据的包装函数
 const reloadData = async () => {
   isReloading.value = true
-  // 实时订阅会自动更新 documents，这里只需短暂显示加载状态
-  setTimeout(() => {
-    isReloading.value = false
-  }, 500)
+  await refreshPlaylists()
+  isReloading.value = false
 }
 
 // 全选/取消全选歌单
@@ -273,20 +278,20 @@ const toggleSelectAllSongs = () => {
 // 删除单个歌单
 const deleteSinglePlaylist = async (playlist) => {
   if (!canManagePlaylist(playlist)) {
-    showMessage('你只能删除自己创建的歌单', 'error')
+    notify.error('你只能删除自己创建的歌单')
     return
   }
 
   if (confirm(`确定要删除歌单"${playlist.title}"吗？此操作不可撤销。`)) {
     const success = await deletePlaylist(playlist)
     if (success) {
-      showMessage('歌单删除成功')
+      notify.success('歌单删除成功')
       // 从选中列表中移除
       selectedPlaylists.value = selectedPlaylists.value.filter((id) => id !== playlist.id)
       // 重新加载数据以显示最新结果
       await reloadData()
     } else {
-      showMessage(deleteError.value || '删除失败', 'error')
+      notify.error(deleteError.value || '删除失败')
     }
   }
 }
@@ -298,26 +303,26 @@ const confirmBatchDelete = async () => {
   )
 
   if (playlistsToDelete.length === 0) {
-    showMessage('没有可删除的歌单', 'error')
+    notify.error('没有可删除的歌单')
     return
   }
 
   const success = await batchDeletePlaylists(playlistsToDelete)
   if (success) {
-    showMessage(`成功删除 ${playlistsToDelete.length} 个歌单`)
+    notify.success(`成功删除 ${playlistsToDelete.length} 个歌单`)
     selectedPlaylists.value = []
     showBatchDeleteModal.value = false
     // 重新加载数据以显示最新结果
     await reloadData()
   } else {
-    showMessage(deleteError.value || '批量删除失败', 'error')
+    notify.error(deleteError.value || '批量删除失败')
   }
 }
 
 // 打开歌曲管理器
 const openSongManager = (playlist) => {
   if (!canManagePlaylist(playlist)) {
-    showMessage('你只能管理自己创建的歌单', 'error')
+    notify.error('你只能管理自己创建的歌单')
     return
   }
 
@@ -336,7 +341,7 @@ const closeSongManager = () => {
 // 删除单个歌曲
 const deleteSingleSong = async (song) => {
   if (!currentPlaylist.value || !canManagePlaylist(currentPlaylist.value)) {
-    showMessage('权限不足', 'error')
+    notify.error('权限不足')
     return
   }
 
@@ -344,7 +349,7 @@ const deleteSingleSong = async (song) => {
     const success = await deleteSongWithStorage(currentPlaylist.value.id, song)
 
     if (success) {
-      showMessage('歌曲删除成功')
+      notify.success('歌曲删除成功')
 
       // 从选中列表中移除
       selectedSongs.value = selectedSongs.value.filter((id) => id !== song.id)
@@ -358,7 +363,7 @@ const deleteSingleSong = async (song) => {
         currentPlaylist.value = updatedPlaylist
       }
     } else {
-      showMessage(deleteError.value || '删除歌曲失败', 'error')
+      notify.error(deleteError.value || '删除歌曲失败')
     }
   }
 }
@@ -366,7 +371,7 @@ const deleteSingleSong = async (song) => {
 // 批量删除歌曲
 const batchDeleteSongs = async () => {
   if (!currentPlaylist.value || !canManagePlaylist(currentPlaylist.value)) {
-    showMessage('权限不足', 'error')
+    notify.error('权限不足')
     return
   }
 
@@ -382,7 +387,7 @@ const batchDeleteSongs = async () => {
     const success = await batchDeleteSongsWithStorage(currentPlaylist.value.id, songsToDelete)
 
     if (success) {
-      showMessage(`成功删除 ${songsToDeleteCount} 首歌曲`)
+      notify.success(`成功删除 ${songsToDeleteCount} 首歌曲`)
       selectedSongs.value = []
 
       // 重新加载歌单数据以显示最新结果
@@ -394,7 +399,7 @@ const batchDeleteSongs = async () => {
         currentPlaylist.value = updatedPlaylist
       }
     } else {
-      showMessage(deleteError.value || '批量删除歌曲失败', 'error')
+      notify.error(deleteError.value || '批量删除歌曲失败')
     }
   }
 }
@@ -406,12 +411,52 @@ const formatDate = (dateStr) => {
   return date.toLocaleDateString('zh-CN')
 }
 
-// 显示消息
-const showMessage = (message, type = 'success') => {
-  successMessage.value = message
-  setTimeout(() => {
-    successMessage.value = ''
-  }, 3000)
+// 开始编辑歌单名
+const startEditTitle = (playlist) => {
+  if (!canManagePlaylist(playlist)) {
+    notify.error('你只能编辑自己创建的歌单')
+    return
+  }
+  editingPlaylistId.value = playlist.id
+  editingTitle.value = playlist.title
+  nextTick(() => {
+    const input = document.querySelector('.edit-title-input')
+    if (input) input.focus()
+  })
+}
+
+// 取消编辑
+const cancelEditTitle = () => {
+  editingPlaylistId.value = null
+  editingTitle.value = ''
+}
+
+// 保存歌单名
+const saveTitle = async (playlist) => {
+  const trimmed = editingTitle.value.trim()
+  if (!trimmed) {
+    notify.error('歌单名不能为空')
+    return
+  }
+  if (trimmed === playlist.title) {
+    cancelEditTitle()
+    return
+  }
+
+  editPending.value = true
+  const { error: updateErr } = await supabase
+    .from('playlists')
+    .update({ title: trimmed })
+    .eq('id', playlist.id)
+  editPending.value = false
+
+  if (updateErr) {
+    notify.error('修改歌单名失败')
+  } else {
+    notify.success('歌单名修改成功')
+    cancelEditTitle()
+    await reloadData()
+  }
 }
 
 // 监听数据加载状态
@@ -435,7 +480,7 @@ watch(
 // 组件挂载时的处理
 onMounted(() => {
   if (!user.value) {
-    showMessage('请先登录', 'error')
+    notify.error('请先登录')
   }
 })
 </script>
@@ -710,6 +755,92 @@ onMounted(() => {
   margin: 0 0 0.5rem 0;
   color: var(--primary);
   line-height: 1.3;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.edit-title-btn {
+  background: none;
+  border: none;
+  color: hsl(from var(--primary) h s calc(l + 30));
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.playlist-card:hover .edit-title-btn {
+  opacity: 1;
+}
+
+.edit-title-btn:hover {
+  color: var(--primary);
+  background: var(--secondary);
+}
+
+.edit-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.edit-title-input {
+  flex: 1;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 0.35rem 0.5rem;
+  border: 2px solid var(--primary);
+  border-radius: 6px;
+  outline: none;
+  color: var(--primary);
+  background: white;
+  max-width: 100%;
+}
+
+.edit-title-input:focus {
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 99, 102, 241), 0.15);
+}
+
+.edit-confirm-btn,
+.edit-cancel-btn {
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.edit-confirm-btn {
+  background: #10b981;
+  color: white;
+}
+
+.edit-confirm-btn:hover:not(:disabled) {
+  background: #059669;
+}
+
+.edit-cancel-btn {
+  background: var(--secondary);
+  color: var(--primary);
+}
+
+.edit-cancel-btn:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.edit-confirm-btn:disabled,
+.edit-cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .playlist-description {
@@ -1119,7 +1250,7 @@ onMounted(() => {
   background: rgba(218, 15, 65, 0.1);
   color: var(--warning);
   border: none;
-  padding: 0.5rem;
+  padding: 0.5rem 1rem;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1134,20 +1265,6 @@ onMounted(() => {
 .delete-song-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-/* 成功提示 */
-.success-toast {
-  position: fixed;
-  top: 2rem;
-  right: 2rem;
-  background: #10b981;
-  color: white;
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  z-index: 1001;
-  font-weight: 500;
 }
 
 /* 移动端优化 */
@@ -1177,12 +1294,6 @@ onMounted(() => {
 
   .modal-actions {
     flex-direction: column;
-  }
-
-  .success-toast {
-    top: 1rem;
-    right: 1rem;
-    left: 1rem;
   }
 }
 

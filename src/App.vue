@@ -10,12 +10,14 @@
     </RouterView>
   </div>
   <MusicPlayer />
+  <ToastNotification />
 </template>
 
 <script setup>
 import { RouterView } from 'vue-router'
 import NavBar from './components/global/NavBar.vue'
 import MusicPlayer from './components/global/MusicPlayer.vue'
+import ToastNotification from './components/global/ToastNotification.vue'
 </script>
 
 <style scoped>
