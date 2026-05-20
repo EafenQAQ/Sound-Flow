@@ -47,7 +47,7 @@ const password = ref(null)
 const confirmPassword = ref(null)
 const displayName = ref(null)
 const success = ref(null)
-const { error, signup, isPending } = useSignup()
+const { error, signup, isPending, needsEmailConfirmation } = useSignup()
 
 const router = useRouter()
 
@@ -61,12 +61,19 @@ const handleSubmit = async () => {
   await signup(email.value, password.value, displayName.value)
   if (!error.value) {
     console.log('注册成功')
-    success.value = '注册成功 ✔'
-    // 为跳转设定延迟以让“注册成功”停留
-    setTimeout(() => {
-      success.value = null
-      router.push({ name: 'login' })
-    }, 2000)
+    if (needsEmailConfirmation.value) {
+      success.value = '注册成功！请前往邮箱查收验证邮件，确认后方可登录'
+      setTimeout(() => {
+        success.value = null
+        router.push({ name: 'login' })
+      }, 5000)
+    } else {
+      success.value = '注册成功 ✔'
+      setTimeout(() => {
+        success.value = null
+        router.push({ name: 'login' })
+      }, 2000)
+    }
   }
 }
 </script>

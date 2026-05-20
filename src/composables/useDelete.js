@@ -1,5 +1,5 @@
+import { supabase } from '@/supabase/config'
 import { ref } from 'vue'
-import { projectFirestore, projectStorage } from '@/firebase/config'
 
 const useDelete = () => {
   const error = ref(null)
@@ -11,8 +11,13 @@ const useDelete = () => {
       error.value = null
       isPending.value = true
 
-      const { doc, deleteDoc } = await import('firebase/firestore')
-      await deleteDoc(doc(projectFirestore, collection, id))
+      const { error: deleteError } = await supabase
+        .from(collection)
+        .delete()
+        .eq('id', id)
+
+      if (deleteError) throw deleteError
+
       console.log('文档删除成功:', id)
       isPending.value = false
       return true
@@ -30,15 +35,13 @@ const useDelete = () => {
       error.value = null
       isPending.value = true
 
-      const { doc, writeBatch } = await import('firebase/firestore')
-      const batch = writeBatch(projectFirestore)
+      const { error: deleteError } = await supabase
+        .from(collection)
+        .delete()
+        .in('id', docIds)
 
-      docIds.forEach((id) => {
-        const docRef = doc(projectFirestore, collection, id)
-        batch.delete(docRef)
-      })
+      if (deleteError) throw deleteError
 
-      await batch.commit()
       console.log('批量删除成功:', docIds)
       isPending.value = false
       return true
@@ -51,17 +54,21 @@ const useDelete = () => {
   }
 
   // 删除存储文件
-  const deleteStorageFile = async (filePath) => {
+  const deleteStorageFile = async (bucket, filePath) => {
     try {
       if (filePath) {
-        const { ref: storageRef, deleteObject } = await import('firebase/storage')
-        const fileRef = storageRef(projectStorage, filePath)
-        await deleteObject(fileRef)
-        console.log('存储文件删除成功:', filePath)
+        const { error: deleteError } = await supabase.storage
+          .from(bucket)
+          .remove([filePath])
+
+        if (deleteError) {
+          console.error('删除存储文件失败:', deleteError.message)
+        } else {
+          console.log('存储文件删除成功:', filePath)
+        }
       }
     } catch (err) {
       console.error('删除存储文件失败:', err.message)
-      // 不抛出错误，因为文档删除更重要
     }
   }
 
@@ -71,21 +78,29 @@ const useDelete = () => {
       error.value = null
       isPending.value = true
 
-      // 先删除存储中的封面图片
+      // 先删除封面图片
       if (playlist.filePath) {
-        await deleteStorageFile(playlist.filePath)
+        await deleteStorageFile('covers', playlist.filePath)
       }
 
-      // 删除歌单中的所有歌曲文件
+      // 删除所有歌曲文件
       if (playlist.songs && playlist.songs.length > 0) {
-        const deleteSongFilePromises = playlist.songs
+        const songFilePaths = playlist.songs
           .filter((song) => song.filePath)
-          .map((song) => deleteStorageFile(song.filePath))
+          .map((song) => song.filePath)
 
-        await Promise.all(deleteSongFilePromises)
+        if (songFilePaths.length > 0) {
+          const { error: songsDeleteError } = await supabase.storage
+            .from('songs')
+            .remove(songFilePaths)
+
+          if (songsDeleteError) {
+            console.error('删除歌曲文件失败:', songsDeleteError.message)
+          }
+        }
       }
 
-      // 再删除文档
+      // 删除歌单文档（级联删除歌曲记录）
       const success = await deleteDocument('playlists', playlist.id)
       return success
     } catch (err) {
@@ -96,34 +111,38 @@ const useDelete = () => {
     }
   }
 
-  // 批量删除歌单（包括封面图片和所有歌曲文件）
+  // 批量删除歌单
   const batchDeletePlaylists = async (playlists) => {
     try {
       error.value = null
       isPending.value = true
 
       // 先删除所有封面图片
-      const deleteCoverPromises = playlists
+      const coverFilePaths = playlists
         .filter((playlist) => playlist.filePath)
-        .map((playlist) => deleteStorageFile(playlist.filePath))
+        .map((playlist) => playlist.filePath)
 
-      await Promise.all(deleteCoverPromises)
+      if (coverFilePaths.length > 0) {
+        await supabase.storage.from('covers').remove(coverFilePaths)
+      }
 
-      // 删除所有歌单中的歌曲文件
-      const deleteSongPromises = []
+      // 删除所有歌曲文件
+      const songFilePaths = []
       playlists.forEach((playlist) => {
         if (playlist.songs && playlist.songs.length > 0) {
           playlist.songs
             .filter((song) => song.filePath)
             .forEach((song) => {
-              deleteSongPromises.push(deleteStorageFile(song.filePath))
+              songFilePaths.push(song.filePath)
             })
         }
       })
 
-      await Promise.all(deleteSongPromises)
+      if (songFilePaths.length > 0) {
+        await supabase.storage.from('songs').remove(songFilePaths)
+      }
 
-      // 再批量删除文档
+      // 批量删除文档
       const playlistIds = playlists.map((playlist) => playlist.id)
       const success = await batchDeleteDocs('playlists', playlistIds)
       return success
@@ -143,23 +162,16 @@ const useDelete = () => {
 
       // 先删除存储中的音频文件
       if (song.filePath) {
-        await deleteStorageFile(song.filePath)
+        await deleteStorageFile('songs', song.filePath)
       }
 
-      // 获取当前歌单数据
-      const { doc, getDoc, updateDoc } = await import('firebase/firestore')
-      const playlistDoc = await getDoc(doc(projectFirestore, 'playlists', playlistId))
-      if (!playlistDoc.exists) {
-        throw new Error('歌单不存在')
-      }
+      // 删除歌曲记录
+      const { error: deleteError } = await supabase
+        .from('songs')
+        .delete()
+        .eq('id', song.id)
 
-      const playlistData = playlistDoc.data()
-      const updatedSongs = playlistData.songs.filter((s) => s.id !== song.id)
-
-      // 更新歌单文档
-      await updateDoc(doc(projectFirestore, 'playlists', playlistId), {
-        songs: updatedSongs,
-      })
+      if (deleteError) throw deleteError
 
       console.log('歌曲删除成功:', song.title)
       isPending.value = false
@@ -172,34 +184,29 @@ const useDelete = () => {
     }
   }
 
-  // 批量删除歌曲（包括音频文件）
+  // 批量删除歌曲
   const batchDeleteSongs = async (playlistId, songsToDelete) => {
     try {
       error.value = null
       isPending.value = true
 
       // 先删除所有音频文件
-      const deleteFilePromises = songsToDelete
+      const songFilePaths = songsToDelete
         .filter((song) => song.filePath)
-        .map((song) => deleteStorageFile(song.filePath))
+        .map((song) => song.filePath)
 
-      await Promise.all(deleteFilePromises)
-
-      // 获取当前歌单数据
-      const { doc, getDoc, updateDoc } = await import('firebase/firestore')
-      const playlistDoc = await getDoc(doc(projectFirestore, 'playlists', playlistId))
-      if (!playlistDoc.exists) {
-        throw new Error('歌单不存在')
+      if (songFilePaths.length > 0) {
+        await supabase.storage.from('songs').remove(songFilePaths)
       }
 
-      const playlistData = playlistDoc.data()
-      const songIdsToDelete = songsToDelete.map((song) => song.id)
-      const updatedSongs = playlistData.songs.filter((song) => !songIdsToDelete.includes(song.id))
+      // 批量删除歌曲记录
+      const songIds = songsToDelete.map((song) => song.id)
+      const { error: deleteError } = await supabase
+        .from('songs')
+        .delete()
+        .in('id', songIds)
 
-      // 更新歌单文档
-      await updateDoc(doc(projectFirestore, 'playlists', playlistId), {
-        songs: updatedSongs,
-      })
+      if (deleteError) throw deleteError
 
       console.log('批量删除歌曲成功:', songsToDelete.length)
       isPending.value = false

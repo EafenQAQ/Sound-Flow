@@ -1,43 +1,97 @@
+import { supabase } from '@/supabase/config'
 import { ref, watchEffect } from 'vue'
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore'
-import { projectFirestore } from '@/firebase/config'
 
 const getCollection = (_collection, _query) => {
   const error = ref(null)
   const documents = ref([])
 
-  let collectionRef = query(collection(projectFirestore, _collection), orderBy('createdAt', 'desc'))
+  let channel = null
 
-  // 如果有查询参数，则引入查询参数
-  if (_query) {
-    collectionRef = query(
-      collection(projectFirestore, _collection),
-      where('userId', '==', _query),
-      orderBy('createdAt', 'desc'),
-    )
-  }
+  const transformPlaylist = (item) => ({
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    userId: item.user_id,
+    userName: item.user_name || '',
+    coverUrl: item.cover_url || '',
+    filePath: item.cover_file_path || '',
+    songs: (item.songs || []).map((song) => ({
+      id: song.id,
+      title: song.title,
+      artist: song.artist,
+      filePath: song.filePath,
+      songUrl: song.songUrl,
+      duration: song.duration,
+    })),
+    createdAt: item.created_at,
+  })
 
-  const unsubscribe = onSnapshot(
-    collectionRef,
-    (snap) => {
-      let results = []
-      snap.docs.forEach((doc) => {
-        doc.data().createdAt && results.push({ ...doc.data(), id: doc.id })
-        documents.value = results
-        error.value = null
-      })
-    },
-    (err) => {
+  const fetchData = async () => {
+    try {
+      let query
+
+      if (_collection === 'playlists') {
+        // 使用视图查询，包含歌曲和用户名
+        query = supabase
+          .from('playlist_details')
+          .select('*')
+          .order('created_at', { ascending: false })
+
+        if (_query) {
+          query = query.eq('user_id', _query)
+        }
+      } else {
+        query = supabase
+          .from(_collection)
+          .select('*')
+          .order('created_at', { ascending: false })
+
+        if (_query) {
+          query = query.eq('user_id', _query)
+        }
+      }
+
+      const { data, error: fetchError } = await query
+
+      if (fetchError) {
+        error.value = '获取数据失败'
+        documents.value = []
+        return
+      }
+
+      if (_collection === 'playlists') {
+        documents.value = (data || []).map(transformPlaylist)
+      } else {
+        documents.value = (data || []).map((item) => ({ ...item, id: item.id }))
+      }
+      error.value = null
+    } catch (err) {
       console.error(err.message)
       error.value = '获取数据失败'
       documents.value = []
-    },
-  )
+    }
+  }
 
-  // 断开snapshot链接
+  fetchData()
+
+  // 设置实时监听
+  channel = supabase
+    .channel(`${_collection}-changes`)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: _collection },
+      () => {
+        fetchData()
+      },
+    )
+    .subscribe()
+
+  // 组件卸载时取消订阅
   watchEffect((onInvalidate) => {
     onInvalidate(() => {
-      unsubscribe()
+      if (channel) {
+        supabase.removeChannel(channel)
+      }
     })
   })
 

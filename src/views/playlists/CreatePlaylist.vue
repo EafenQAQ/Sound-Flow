@@ -21,12 +21,11 @@
 import { getUser } from '@/composables/getUser';
 import useCollection from '@/composables/useCollection';
 import useStorage from '@/composables/useStorage';
-import { timestamp } from '@/firebase/config';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 // 获取用户登录状态
-const { user } = getUser()
+const { user, profile } = getUser()
 
 const router = useRouter()
 
@@ -62,12 +61,11 @@ const handleSubmit = async () => {
     const res = await addDocument({
       title: title.value,
       description: description.value,
-      userId: user.value.uid,
-      userName: user.value.displayName,
+      userId: user.value.id,
+      userName: user.value.user_metadata?.display_name || profile.value?.display_name || '',
       coverUrl: url.value,
       filePath: filePath.value,
       songs: [],
-      createdAt: timestamp(),
     })
 
     isPending.value = false

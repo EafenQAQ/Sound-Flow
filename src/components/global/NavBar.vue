@@ -23,13 +23,13 @@
 
       <template v-else>
         <RouterLink class="menu-tabs" :to="{ name: 'createPlaylist' }" @click="closeMobileMenu">创建歌单</RouterLink>
-        <RouterLink class="menu-tabs" :to="{ name: 'userPlaylist', params: { userId: user.uid } }"
+        <RouterLink class="menu-tabs" :to="{ name: 'userPlaylist', params: { userId: user.id } }"
           @click="closeMobileMenu">我的歌单
         </RouterLink>
         <RouterLink class="menu-tabs" :to="{ name: 'playlistManager' }" @click="closeMobileMenu">歌单管理</RouterLink>
         <RouterLink :to="{ name: 'profile' }" @click="closeMobileMenu">
           <div class="greeting">
-            <p>Hi! {{ user.displayName }}</p>
+            <p>Hi! {{ user.user_metadata?.display_name || profile?.display_name || '用户' }}</p>
           </div>
         </RouterLink>
       </template>
@@ -56,7 +56,7 @@ const success = ref(null)
 const router = useRouter()
 
 // user state
-const { user } = getUser()
+const { user, profile } = getUser()
 
 // 移动端菜单状态
 const isMobileMenuOpen = ref(false)

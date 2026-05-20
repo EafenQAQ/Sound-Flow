@@ -39,7 +39,7 @@
                 </div>
               </div>
             </div>
-            <AddSongs v-if="user?.uid === document.userId" :document="document" class="add-songs-component" />
+            <AddSongs v-if="user?.id === document.userId" :document="document" class="add-songs-component" />
           </div>
         </div>
       </div>

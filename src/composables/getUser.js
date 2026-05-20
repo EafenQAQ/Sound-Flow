@@ -1,11 +1,10 @@
 import { ref, computed } from 'vue'
-import { projectAuth } from '@/firebase/config'
+import { supabase } from '@/supabase/config'
 
-const user = ref(projectAuth.currentUser)
+// 全局认证状态
+const user = ref(null)
+const profile = ref(null)
 
-// 缓存用户登录状态
-
-// 全局认证状态缓存
 const authState = ref({
   user: null,
   isLoading: true,
@@ -19,26 +18,68 @@ let authUnsubscribe = null
 const initAuthListener = () => {
   if (authUnsubscribe) return
 
-  authUnsubscribe = projectAuth.onAuthStateChanged((_user) => {
+  // 获取当前会话
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    const currentUser = session?.user ?? null
     authState.value = {
-      user: _user,
+      user: currentUser,
       isLoading: false,
       isInitialized: true,
       lastUpdate: Date.now(),
     }
-    console.log('认证状态更新:', _user?.uid || '未登录')
-    user.value = _user
+    user.value = currentUser
+
+    // 如果已登录，获取用户资料
+    if (currentUser) {
+      fetchProfile(currentUser.id)
+    }
   })
+
+  // 监听认证状态变化
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const currentUser = session?.user ?? null
+    authState.value = {
+      user: currentUser,
+      isLoading: false,
+      isInitialized: true,
+      lastUpdate: Date.now(),
+    }
+    user.value = currentUser
+    console.log('认证状态更新:', currentUser?.id || '未登录', '事件:', _event)
+
+    // 登录时获取资料
+    if (currentUser) {
+      fetchProfile(currentUser.id)
+    } else {
+      profile.value = null
+    }
+  })
+
+  authUnsubscribe = subscription
+}
+
+// 获取用户资料
+const fetchProfile = async (userId) => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
+
+    if (error) throw error
+    profile.value = data
+  } catch (err) {
+    console.error('获取用户资料失败:', err.message)
+  }
 }
 
 // 获取当前认证状态
 const getCurrentUser = () => {
-  // 如果已初始化，直接返回缓存的状态
   if (authState.value.isInitialized) {
     return Promise.resolve(authState.value.user)
   }
 
-  // 如果未初始化，等待初始化完成
   return new Promise((resolve) => {
     const checkAuth = () => {
       if (authState.value.isInitialized) {
@@ -54,10 +95,10 @@ const getCurrentUser = () => {
 const getUser = () => {
   return {
     user,
+    profile,
     isLoading: computed(() => authState.value.isLoading),
-    isInitialized: computed(() => authState.value.isInitialized)
+    isInitialized: computed(() => authState.value.isInitialized),
   }
 }
 
 export { getUser, initAuthListener, getCurrentUser }
-

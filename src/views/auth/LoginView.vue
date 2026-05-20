@@ -25,6 +25,10 @@
             <div class="success" v-if="success">{{ success }}</div>
           </Transition>
 
+          <div class="email-tip">
+            首次登录需先验证邮箱，请查收注册时的确认邮件
+          </div>
+
           <button v-if="!isPending" type="submit" class="submit-btn">登录</button>
           <button v-if="isPending" disabled class="submit-btn loading">
             <span class="loading-spinner"></span>
@@ -234,6 +238,14 @@ h2 {
   background: rgba(34, 197, 94, 0.1);
   color: rgb(34, 197, 94);
   border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.email-tip {
+  font-size: 0.85rem;
+  color: #888;
+  text-align: center;
+  margin-top: 0.75rem;
+  line-height: 1.4;
 }
 
 /* 响应式布局 */

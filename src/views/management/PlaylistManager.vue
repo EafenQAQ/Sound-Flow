@@ -68,7 +68,7 @@
           <!-- 歌单内容 -->
           <div class="playlist-content">
             <div class="thumbnail">
-              <img :src="playlist.optimizedCoverUrl || playlist.coverUrl" :alt="playlist.title" loading="lazy" />
+              <img :src="playlist.coverUrl" :alt="playlist.title" loading="lazy" />
               <div class="overlay">
                 <RouterLink :to="{ name: 'playlistDetails', params: { id: playlist.id } }" class="view-link">
                   <span class="view-icon">{{ playlist.title }}</span>
@@ -200,8 +200,7 @@ const { user } = getUser()
 const {
   error,
   documents: userPlaylists,
-  load: loadPlaylists,
-} = getCollection('playlists', user.value?.uid)
+} = getCollection('playlists', user.value?.id)
 
 // 删除功能
 const {
@@ -239,17 +238,16 @@ const isAllSongsSelected = computed(() => {
 
 // 权限检查函数
 const canManagePlaylist = (playlist) => {
-  return user.value && playlist.userId === user.value.uid
+  return user.value && playlist.userId === user.value.id
 }
 
 // 重新加载数据的包装函数
 const reloadData = async () => {
-  try {
-    isReloading.value = true
-    await loadPlaylists()
-  } finally {
+  isReloading.value = true
+  // 实时订阅会自动更新 documents，这里只需短暂显示加载状态
+  setTimeout(() => {
     isReloading.value = false
-  }
+  }, 500)
 }
 
 // 全选/取消全选歌单
@@ -402,9 +400,9 @@ const batchDeleteSongs = async () => {
 }
 
 // 格式化日期
-const formatDate = (timestamp) => {
-  if (!timestamp) return ''
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
   return date.toLocaleDateString('zh-CN')
 }
 

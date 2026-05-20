@@ -29,4 +29,3 @@ import MusicPlayer from './components/global/MusicPlayer.vue'
   }
 }
 </style>
-s

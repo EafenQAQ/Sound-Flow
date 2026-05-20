@@ -19,12 +19,12 @@ export default defineConfig({
         // 在这里添加对chunks的配置
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            // 将vue相关的库分到一起
             if (id.includes('vue') || id.includes('pinia') || id.includes('vue-router')) {
               return 'vendor-vue'
             }
-
-            // 其他第三方库
+            if (id.includes('@supabase')) {
+              return 'vendor-supabase'
+            }
             return 'vendor'
           }
         },

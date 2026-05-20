@@ -59,7 +59,7 @@ const handleSubmit = async () => {
   isPending.value = true
   await uploadSong(song.value, props.document.id) //上传歌曲文件到Storage
 
-  // 上传歌曲信息到firestore
+  // 上传歌曲信息到数据库
   const newSong = {
     title: title.value,
     artist: artist.value,
