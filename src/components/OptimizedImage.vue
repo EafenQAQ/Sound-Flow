@@ -9,20 +9,11 @@ const props = defineProps({
     type: Object,
     required: true
   },
-  pixelSize: {
-    type: String,
-    required: false,
-    default: '_800x800.webp'
-  },
   imageClass: {
     type: String,
     default: 'playlist-image'
   },
   lazyLoad: {
-    type: Boolean,
-    default: false
-  },
-  preload: {
     type: Boolean,
     default: false
   }

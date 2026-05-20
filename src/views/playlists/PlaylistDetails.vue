@@ -6,7 +6,7 @@
       <div class="content-wrapper">
         <div class="profile fade-in-up">
           <div class="cover-container">
-            <OptimizedImage :playlist="document" :pixel-size="'_800x800.webp'" :preload="true" />
+            <OptimizedImage :playlist="document" :lazy-load="false" />
           </div>
           <div class="info-container">
             <h2 class="title">{{ document.title }}</h2>
