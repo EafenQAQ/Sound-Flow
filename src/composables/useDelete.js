@@ -79,8 +79,9 @@ const useDelete = () => {
       isPending.value = true
 
       // 先删除封面图片
-      if (playlist.filePath) {
-        await deleteStorageFile('covers', playlist.filePath)
+      const coverPath = playlist.coverFilePath || playlist.filePath
+      if (coverPath) {
+        await deleteStorageFile('covers', coverPath)
       }
 
       // 删除所有歌曲文件

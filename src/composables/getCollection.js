@@ -14,12 +14,12 @@ const getCollection = (_collection, _query) => {
     userId: item.user_id,
     userName: item.user_name || '',
     coverUrl: item.cover_url || '',
-    filePath: item.cover_file_path || '',
+    coverFilePath: item.cover_file_path || '',  // 统一命名
     songs: (item.songs || []).map((song) => ({
       id: song.id,
       title: song.title,
       artist: song.artist,
-      filePath: song.filePath,
+      filePath: song.filePath || song.file_path || '',  // 兼容两种格式
       songUrl: song.songUrl,
       duration: song.duration,
     })),

@@ -26,12 +26,12 @@ const getDocument = (collection, id) => {
             userId: data.user_id,
             userName: data.user_name || '',
             coverUrl: data.cover_url || '',
-            filePath: data.cover_file_path || '',
+            coverFilePath: data.cover_file_path || '',
             songs: (data.songs || []).map((song) => ({
               id: song.id,
               title: song.title,
               artist: song.artist,
-              filePath: song.filePath,
+              filePath: song.filePath || song.file_path || '',  // 兼容两种格式
               songUrl: song.songUrl,
               duration: song.duration,
             })),
