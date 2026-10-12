@@ -16,7 +16,7 @@
 - 🔐 **用户认证** - 安全的登录注册系统
 
 ## 快速体验
-https://sound-flow-e1a34.web.app/
+https://sound-flow.pages.dev/
 
 ## 📸 应用截图
 
